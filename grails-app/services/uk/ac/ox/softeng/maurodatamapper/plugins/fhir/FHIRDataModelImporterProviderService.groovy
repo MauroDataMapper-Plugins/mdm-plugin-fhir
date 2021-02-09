@@ -17,19 +17,28 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.client.RestClientException
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
+
+import java.nio.charset.Charset
 
 @Slf4j
 class FHIRDataModelImporterProviderService extends DataModelImporterProviderService<FHIRDataModelImporterProviderServiceParameters> {
 
     @Autowired
     DataModelService dataModelService
+
+    @Autowired
+    FHIRServerClient serverClient
 
     @Override
     String getDisplayName() {
@@ -56,11 +65,21 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
     List<DataModel> importModels(User currentUser, FHIRDataModelImporterProviderServiceParameters params) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         log.debug("importDataModels")
+        try {
+            if ( params.importType == 'codeSystem') {
+                def response = new JsonSlurper().parseText(serverClient.getCodeSystems('json'))
+                importDataModels(currentUser, response)
+            }
 
+        } catch (RestClientException e) {
+            throw new ApiInternalException('FHIR02', 'Error making webservice call to FHIR server ' + e)
+        }
     }
 
-    private List<DataModel> importDataModels(User currentUser, byte[] content) {
+    private List<DataModel> importDataModels(User currentUser, Map<String, String> data) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR0101', 'User must be logged in to import model')
+        List<DataModel> dataModels = new ArrayList<DataModel>()
+        dataModels
     }
 
     @Override
