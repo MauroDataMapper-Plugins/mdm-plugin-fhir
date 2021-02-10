@@ -26,10 +26,9 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.service.CodeSystemDataModelService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
-
-import java.nio.charset.Charset
 
 @Slf4j
 class FHIRDataModelImporterProviderService extends DataModelImporterProviderService<FHIRDataModelImporterProviderServiceParameters> {
@@ -40,9 +39,12 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
     @Autowired
     FHIRServerClient serverClient
 
+    @Autowired
+    CodeSystemDataModelService codeSystemDataModelService
+
     @Override
     String getDisplayName() {
-        'Art Decor Importer'
+        'FHIR Server Importer'
     }
 
     @Override
@@ -68,7 +70,7 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
         try {
             if ( params.importType == 'codeSystem') {
                 def response = new JsonSlurper().parseText(serverClient.getCodeSystems('json'))
-                importDataModels(currentUser, response)
+                codeSystemDataModelService.importCodeDataModels(currentUser, response)
             }
 
         } catch (RestClientException e) {
@@ -76,8 +78,10 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
         }
     }
 
-    private List<DataModel> importDataModels(User currentUser, Map<String, String> data) {
+    private List<DataModel> importCodeDataModels(User currentUser, String data) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR0101', 'User must be logged in to import model')
+        String namespace = "org.fhir.server"
+        List<DataModel> imported = []
         List<DataModel> dataModels = new ArrayList<DataModel>()
         dataModels
     }

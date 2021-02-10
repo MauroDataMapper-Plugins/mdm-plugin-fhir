@@ -1,4 +1,4 @@
-{
+    {
     "resourceType": "CodeSystem",
     "id": "CareConnect-ConditionCategory-1",
     "url": "https://fhir.hl7.org.uk/STU3/CodeSystem/CareConnect-ConditionCategory-1",
