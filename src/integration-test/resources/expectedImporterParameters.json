@@ -2,7 +2,7 @@
   "importer": {
     "name": "FHIRDataModelImporterProviderService",
     "version": "2.1.0-SNAPSHOT",
-    "displayName": "Art Decor Importer",
+    "displayName": "FHIR Importer",
     "namespace": "uk.ac.ox.softeng.maurodatamapper.plugins.fhir",
     "allowsExtraMetadataKeys": true,
     "knownMetadataKeys": [

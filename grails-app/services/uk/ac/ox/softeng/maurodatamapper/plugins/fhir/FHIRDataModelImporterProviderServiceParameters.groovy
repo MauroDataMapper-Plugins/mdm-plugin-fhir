@@ -25,17 +25,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.parameter.Da
 class FHIRDataModelImporterProviderServiceParameters extends DataModelImporterProviderServiceParameters {
 
     @ImportParameterConfig(
-            displayName = 'Endpoint',
-            description = 'FHIR SERVER endpoint.',
-            order = -1,
-            group = @ImportGroupConfig(
-                    name = 'FHIR Endpoint',
-                    order = 1
-            )
-    )
-    String endpoint
-
-    @ImportParameterConfig(
             displayName = 'Import Type',
             description = 'FHIR import type',
             order = -1,

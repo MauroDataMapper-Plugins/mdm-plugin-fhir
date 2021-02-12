@@ -42,7 +42,7 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
 
     @Override
     String getDisplayName() {
-        'Art Decor Importer'
+        'FHIR Importer'
     }
 
     @Override
@@ -64,21 +64,28 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
     @Override
     List<DataModel> importModels(User currentUser, FHIRDataModelImporterProviderServiceParameters params) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
-        log.debug("importDataModels")
+        //is there a consensus on error coding
+        //FileParameter importFile = params.importFile
+        //if (!importFile.fileContents.size()) throw new ApiBadRequestException('FHIR0001', 'Cannot import empty file')
         try {
-            if ( params.importType == 'codeSystem') {
-                def response = new JsonSlurper().parseText(serverClient.getCodeSystems('json'))
+            if (params.importType == 'structureDefinition') {
+                def response = new JsonSlurper().parseText(serverClient.getStructureDefinition('json'))
+                log.debug('Parsing in file content using JsonSlurper')
                 importDataModels(currentUser, response)
             }
-
         } catch (RestClientException e) {
             throw new ApiInternalException('FHIR02', 'Error making webservice call to FHIR server ' + e)
         }
     }
 
-    private List<DataModel> importDataModels(User currentUser, Map<String, String> data) {
+    private List<DataModel> importDataModels(User currentUser, def data) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR0101', 'User must be logged in to import model')
+
+        String namespace = "org.fhir.server"
         List<DataModel> dataModels = new ArrayList<DataModel>()
+        DataModel dataModel = new DataModel(label: data.name)
+        dataModel.description = data.description
+
         dataModels
     }
 

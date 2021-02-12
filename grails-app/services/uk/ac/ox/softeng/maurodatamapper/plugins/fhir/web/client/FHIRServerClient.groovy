@@ -9,4 +9,7 @@ interface FHIRServerClient {
     @Get("/CareConnect-ConditionCategory-1?_format={format}")
     String getCodeSystems(String format)
 
+    @Get("StructureDefinition/CareConnect-AllergyIntolerance-1/1.0?_format={format}")
+    String getStructureDefinition(String format)
+
 }
