@@ -26,6 +26,11 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
@@ -80,13 +85,42 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
 
     private List<DataModel> importDataModels(User currentUser, def data) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR0101', 'User must be logged in to import model')
+        //error coding?
 
         String namespace = "org.fhir.server"
-        List<DataModel> dataModels = new ArrayList<DataModel>()
-        DataModel dataModel = new DataModel(label: data.name)
+        List<DataModel> imported = []
+
+        DataModel dataModel = new DataModel()
+        dataModel.label = data.name
         dataModel.description = data.description
 
-        dataModels
+        def datasets = data.snapshot.element
+
+        try {
+            datasets.each { dataset ->
+
+                DataElement dataElement = new DataElement()
+                DataType itemDataType = new PrimitiveType()
+                //String uniqueName = dataset.id
+                dataElement.dataType = itemDataType
+                dataElement.description = dataset.definition
+                dataElement.maxMultiplicity = dataset.max
+
+                dataset.each {dataMap ->
+                    dataMap
+                    dataElement.addToMetadata(new Metadata(
+                            namespace: namespace,
+                            key: dataMap.key,
+                            value: dataMap.value
+                    ))
+                }
+                imported += dataModel
+
+            }
+        } catch (Exception ex) {
+            throw new ApiInternalException('FHIR02', "${ex.message}")
+        }
+        imported
     }
 
     @Override
