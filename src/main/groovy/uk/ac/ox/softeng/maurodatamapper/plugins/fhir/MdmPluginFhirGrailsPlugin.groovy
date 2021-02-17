@@ -19,13 +19,13 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
 import grails.plugins.Plugin
 
-class MdmPluginFHIRGrailsPlugin extends Plugin {
+class MdmPluginFhirGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "4.0.0 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            "grails-app/views/error.gsp"
+        "grails-app/views/error.gsp"
     ]
 
     def title = "Mauro Data Mapper FHIR server Profile Plugin"
@@ -54,7 +54,7 @@ The FHIR Server importer services  for the Mauro Data Mapper backend.
     def issueManagement = [system: "YouTrack", url: "https://maurodatamapper.myjetbrains.com"]
 
     // Online location of the plugin's browseable source code.
-    def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugins-awsglue"]
+    def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugin-fhir"]
 
     def dependsOn = [
             mdmCore           : '4.0.0 > *',

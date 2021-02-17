@@ -10,7 +10,6 @@ dependencies {
     runtimeOnly group: 'org.postgresql', name: 'postgresql'
 
     testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmTestingFrameworkVersion
-    compile 'uk.ac.ox.softeng.maurodatamapper:mdm-plugin-terminology:4.2.0-SNAPSHOT'
 
     // Postgres database
     runtime group: 'org.flywaydb', name: 'flyway-core'

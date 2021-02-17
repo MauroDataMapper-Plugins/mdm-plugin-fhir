@@ -1,14 +1,13 @@
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.service
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer
 
-
-import org.springframework.beans.factory.annotation.Autowired
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.service.provider.importer.TerminologyJsonImporter
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.security.User
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.TerminologyImporterProviderService
 
+import org.springframework.beans.factory.annotation.Autowired
+
 abstract class FhirCodeSystemTerminologyService<T extends FhirTerminologyImporterProviderServiceParameters>
-        extends TerminologyImporterProviderService<T>{
+    extends TerminologyImporterProviderService<T> {
 
     @Autowired
     TerminologyJsonImporter jsonImporter

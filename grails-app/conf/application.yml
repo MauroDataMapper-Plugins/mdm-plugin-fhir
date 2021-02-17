@@ -148,7 +148,7 @@ environments:
     test:
         spring.flyway.enabled: false
         database:
-            name: 'mpa'
+            name: 'mpf'
             creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS DATAMODEL\;CREATE SCHEMA IF NOT EXISTS TERMINOLOGY'
         dataSource:
             driverClassName: org.h2.Driver
