@@ -23,7 +23,6 @@ import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
 import spock.lang.Shared
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
-import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.FileParameter
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
@@ -36,7 +35,7 @@ import java.nio.file.Paths
 
 @Slf4j
 @Integration
-class FHIRDataModelImporterProviderServiceSpec extends BaseFunctionalSpec {
+class FhirDataModelImporterProviderServiceSpec extends BaseFunctionalSpec {
 
     @Shared
     Path resourcesPath
@@ -72,10 +71,10 @@ class FHIRDataModelImporterProviderServiceSpec extends BaseFunctionalSpec {
         def fileAsString = loadTestFileAsString('fhir-server-code-systems-payload.json')
         DataModelService dataModelService = Mock()
         FHIRServerClient serverClient = Stub(FHIRServerClient) {
-            it.getCodeSystems('json') >> fileAsString
+            it.getCodeSystemTerminologies('json') >> fileAsString
         }
-        FHIRDataModelImporterProviderService fhir = new FHIRDataModelImporterProviderService()
-        def parameters = new FHIRDataModelImporterProviderServiceParameters()
+        FhirDataModelImporterProviderService fhir = new FhirDataModelImporterProviderService()
+        def parameters = new FhirDataModelImporterProviderServiceParameters()
 
         given:
         parameters.importType = 'codeSystem'

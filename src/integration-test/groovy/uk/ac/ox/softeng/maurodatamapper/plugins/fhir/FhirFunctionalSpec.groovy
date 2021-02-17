@@ -35,7 +35,7 @@ import static io.micronaut.http.HttpStatus.OK
 
 @Slf4j
 @Integration
-class FHIRFunctionalSpec extends BaseFunctionalSpec {
+class FhirFunctionalSpec extends BaseFunctionalSpec {
 
     @Shared
     Path resourcesPath
@@ -58,7 +58,7 @@ class FHIRFunctionalSpec extends BaseFunctionalSpec {
 
     void 'test importer parameters'() {
         when:
-        GET('importer/parameters/uk.ac.ox.softeng.maurodatamapper.plugins.fhir/FHIRDataModelImporterProviderService/2.1.0-SNAPSHOT', STRING_ARG)
+        GET('importer/parameters/uk.ac.ox.softeng.maurodatamapper.plugins.fhir/FhirDataModelImporterProviderService/2.1.0-SNAPSHOT', STRING_ARG)
 
         then:
         verifyJsonResponse OK, new String(loadTestFile('expectedImporterParameters.json'))

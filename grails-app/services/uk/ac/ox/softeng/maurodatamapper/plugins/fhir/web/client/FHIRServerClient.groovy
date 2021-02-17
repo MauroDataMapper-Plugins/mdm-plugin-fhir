@@ -9,6 +9,6 @@ import io.micronaut.http.client.annotation.Client
 interface FHIRServerClient {
 
     @Get("CodeSystem/CareConnect-ConditionCategory-1?_format={format}")
-    String getCodeSystems(String format)
+    String getCodeSystemTerminologies(String format)
 
 }

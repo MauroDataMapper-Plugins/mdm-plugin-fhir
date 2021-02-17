@@ -26,21 +26,17 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.service.CodeSystemDataModelService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
 @Slf4j
-class FHIRDataModelImporterProviderService extends DataModelImporterProviderService<FHIRDataModelImporterProviderServiceParameters> {
+class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters> {
 
     @Autowired
     DataModelService dataModelService
 
     @Autowired
     FHIRServerClient serverClient
-
-    @Autowired
-    CodeSystemDataModelService codeSystemDataModelService
 
     @Override
     String getDisplayName() {
@@ -49,7 +45,7 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
 
     @Override
     String getVersion() {
-        '2.1.0-SNAPSHOT'
+        '1.0.0-SNAPSHOT'
     }
 
     @Override
@@ -58,21 +54,17 @@ class FHIRDataModelImporterProviderService extends DataModelImporterProviderServ
     }
 
     @Override
-    DataModel importModel(User user, FHIRDataModelImporterProviderServiceParameters t) {
+    DataModel importModel(User user, FhirDataModelImporterProviderServiceParameters t) {
         log.debug("importDataModel")
         importModels(user, t)?.first()
     }
 
     @Override
-    List<DataModel> importModels(User currentUser, FHIRDataModelImporterProviderServiceParameters params) {
+    List<DataModel> importModels(User currentUser, FhirDataModelImporterProviderServiceParameters params) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         log.debug("importDataModels")
         try {
-            if ( params.importType == 'codeSystem') {
-                def response = new JsonSlurper().parseText(serverClient.getCodeSystems('json'))
-                codeSystemDataModelService.importCodeDataModels(currentUser, response)
-            }
-
+           // def response = new JsonSlurper().parseText(serverClient.getCodeSystemTerminologies('json'))
         } catch (RestClientException e) {
             throw new ApiInternalException('FHIR02', 'Error making webservice call to FHIR server ' + e)
         }

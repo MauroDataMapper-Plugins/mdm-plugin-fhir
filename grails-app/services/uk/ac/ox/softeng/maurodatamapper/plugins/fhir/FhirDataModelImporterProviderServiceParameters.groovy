@@ -18,32 +18,8 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
 
-import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportGroupConfig
-import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportParameterConfig
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.parameter.DataModelImporterProviderServiceParameters
 
-class FHIRDataModelImporterProviderServiceParameters extends DataModelImporterProviderServiceParameters {
-
-    @ImportParameterConfig(
-            displayName = 'Endpoint',
-            description = 'FHIR SERVER endpoint.',
-            order = -1,
-            group = @ImportGroupConfig(
-                    name = 'FHIR Endpoint',
-                    order = 1
-            )
-    )
-    String endpoint
-
-    @ImportParameterConfig(
-            displayName = 'Import Type',
-            description = 'FHIR import type',
-            order = -1,
-            group = @ImportGroupConfig(
-                    name = 'Import Type',
-                    order = 2
-            )
-    )
-    String importType
+class FhirDataModelImporterProviderServiceParameters extends DataModelImporterProviderServiceParameters {
 
 }

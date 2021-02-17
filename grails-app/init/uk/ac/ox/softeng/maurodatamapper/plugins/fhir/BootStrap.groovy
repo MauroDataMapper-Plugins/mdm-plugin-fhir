@@ -23,7 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.bootstrap.BootstrapModels
 
 class BootStrap {
 
-    FHIRDataModelImporterProviderService fhirProviderService
+    FhirDataModelImporterProviderService fhirProviderService
 
     def init = { servletContext ->
 
