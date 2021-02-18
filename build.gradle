@@ -80,6 +80,7 @@ dependencies {
     compile "org.grails.plugins:views-markup:$grailsViewsVersion"
     compileOnly "io.micronaut:micronaut-inject-groovy"
     console "org.grails:grails-console"
+    compile 'io.micronaut:micronaut-http-client'
     // Until the fixes are published we need to use our versions of the profiles
     profile "org.grails.profiles:rest-api-plugin", {
         transitive false

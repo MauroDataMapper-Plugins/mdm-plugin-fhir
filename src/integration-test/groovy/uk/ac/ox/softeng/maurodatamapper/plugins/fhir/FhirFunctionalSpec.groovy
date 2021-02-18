@@ -56,12 +56,13 @@ class FhirFunctionalSpec extends BaseFunctionalSpec {
         Files.readAllBytes(testFilePath)
     }     
 
-    void 'test importer parameters'() {
+    void 'test terminologies'() {
         when:
-        GET('importer/parameters/uk.ac.ox.softeng.maurodatamapper.plugins.fhir/FhirDataModelImporterProviderService/2.1.0-SNAPSHOT', STRING_ARG)
+        def body = GET('terminologies/providers/importers/', STRING_ARG).body()
 
         then:
-        verifyJsonResponse OK, new String(loadTestFile('expectedImporterParameters.json'))
+        verifyJsonResponse OK, new String(loadTestFile('expectedTerminologies.json'))
+        assert(body.contains('FihrTerminologyImporterService'))
     }
 
 
