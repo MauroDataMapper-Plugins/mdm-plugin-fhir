@@ -17,11 +17,17 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer
 
+import groovy.json.JsonSlurper
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
@@ -65,18 +71,74 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         if (!currentUser) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         log.debug("importDataModels")
         try {
-           // def response = new JsonSlurper().parseText(serverClient.getCodeSystemTerminologies('json'))
+           def response = new JsonSlurper().parseText(serverClient.getStructureDefinition('json'))
+            log.debug('Parsing in file content using JsonSlurper')
+            importDataModels(currentUser, response)
         } catch (RestClientException e) {
             throw new ApiInternalException('FHIR02', 'Error making webservice call to FHIR server ' + e)
         }
     }
 
-    private List<DataModel> importCodeDataModels(User currentUser, String data) {
+    private List<DataModel> importDataModels(User currentUser, def data) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR0101', 'User must be logged in to import model')
+
         String namespace = "org.fhir.server"
         List<DataModel> imported = []
-        List<DataModel> dataModels = new ArrayList<DataModel>()
-        dataModels
+
+        DataModel dataModel = new DataModel()
+        dataModel.label = data.name
+        dataModel.description = data.description
+
+        data.each { dataMap ->
+            dataMap.each {
+                if (it.key != 'id' && it.key != 'description') {
+                    dataModel.addToMetadata(new Metadata(
+                            namespace: namespace,
+                            key: it.key,
+                            value: it.value.toString()
+                    ))
+                }
+            }
+        }
+
+        def datasets = data.snapshot.element
+        //def datasets = data.differential.element
+
+        datasets.each { dataMap ->
+
+            DataClass dataClass = new DataClass()
+            dataClass.label = dataMap.id
+            dataClass.description = dataMap.definition
+            dataClass.maxMultiplicity = dataMap.max
+            dataClass.minMultiplicity = dataMap.min
+
+            dataMap.each {
+                if (it.key != 'id' && it.key != 'description') {
+                    dataModel.addToMetadata(new Metadata(
+                            namespace: namespace,
+                            key: it.key,
+                            value: it.value.toString()
+                    ))
+                }
+            }
+
+            def constraintList = dataMap.constraint
+
+            if (constraintList) {
+                constraintList.each {
+                    dataClass.addToMetadata(new Metadata(
+                            namespace: namespace,
+                            key: it.key,
+                            value: it.value.toString()
+                    ))
+                }
+            }
+            dataModel.addToDataClasses(dataClass)
+
+            imported += dataModel
+            dataModelService.checkImportedDataModelAssociations(currentUser, dataModel)
+        }
+        imported
     }
 
     @Override

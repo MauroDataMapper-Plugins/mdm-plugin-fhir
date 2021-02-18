@@ -92,6 +92,27 @@ class FhirDataModelImporterProviderServiceSpec extends BaseFunctionalSpec {
         1 * serverClient._
     }
 
+    def "verify Structure Definition dataModel"() {
+        def fileAsString = loadTestFileAsString('fhir-server-structure-definition-payload.json')
+        DataModelService dataModelService = Mock()
+        FHIRServerClient serverClient = Stub(FHIRServerClient) {
+            it.getStructureDefinition('json') >> fileAsString
+        }
+        FhirDataModelImporterProviderService fhir = new FhirDataModelImporterProviderService()
+        def parameters = new FhirDataModelImporterProviderServiceParameters()
+
+        given:
+        fhir.dataModelService = dataModelService
+        fhir.serverClient = serverClient
+
+        when:
+        def dataModel = fhir.importModel(admin, parameters)
+
+        then:
+        1 * dataModelService._
+        //assert(dataModel.label=='')
+    }
+
 
     @Override
     String getResourcePath() {
