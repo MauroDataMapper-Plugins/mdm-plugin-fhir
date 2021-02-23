@@ -33,6 +33,6 @@ abstract class FhirCodeSystemTerminologyService<T extends FhirTerminologyImporte
 
     @Override
     String getVersion() {
-        '1.0.0-SNAPSHOT'
+        getClass().getPackage().getSpecificationVersion() ?: 'SNAPSHOT'
     }
 }
