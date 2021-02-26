@@ -91,7 +91,10 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         data.each { dataMap ->
             dataMap.each {
-                if (it.key != 'id' && it.key != 'description') {
+                if (it.key != 'id'
+                        && it.key != 'description'
+                        && it.key != 'differential'
+                        && it.key != 'snapshot') {
                     dataModel.addToMetadata(new Metadata(
                             namespace: namespace,
                             key: it.key,
@@ -105,16 +108,21 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         //def datasets = data.differential.element
 
         datasets.each { dataMap ->
-
             DataClass dataClass = new DataClass()
             dataClass.label = dataMap.id
             dataClass.description = dataMap.definition
-            dataClass.maxMultiplicity = dataMap.max
-            dataClass.minMultiplicity = dataMap.min
+            if (dataMap.max == '*') {
+                dataClass.maxMultiplicity = '-1'.toInteger()
+            } else {
+                dataClass.maxMultiplicity = dataMap.max.toInteger()
+            }
+            dataClass.minMultiplicity = dataMap.min.toInteger()
 
             dataMap.each {
-                if (it.key != 'id' && it.key != 'description') {
-                    dataModel.addToMetadata(new Metadata(
+                if (it.key != 'id'
+                        && it.key != 'definition'
+                        && it.key != 'constraint') {
+                    dataClass.addToMetadata(new Metadata(
                             namespace: namespace,
                             key: it.key,
                             value: it.value.toString()
@@ -125,19 +133,21 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
             def constraintList = dataMap.constraint
 
             if (constraintList) {
-                constraintList.each {
-                    dataClass.addToMetadata(new Metadata(
-                            namespace: namespace,
-                            key: it.key,
-                            value: it.value.toString()
-                    ))
+                constraintList.each { constraintMap ->
+                    constraintMap.each {
+                        dataClass.addToMetadata(new Metadata(
+                                namespace: namespace,
+                                key: it.key,
+                                value: it.value.toString()
+                        ))
+                    }
                 }
             }
             dataModel.addToDataClasses(dataClass)
-
-            imported += dataModel
-            dataModelService.checkImportedDataModelAssociations(currentUser, dataModel)
         }
+            dataModelService.checkImportedDataModelAssociations(currentUser, dataModel)
+            imported += dataModel
+
         imported
     }
 
