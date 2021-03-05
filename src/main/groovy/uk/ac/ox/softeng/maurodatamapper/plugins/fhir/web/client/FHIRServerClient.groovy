@@ -12,7 +12,13 @@ interface FHIRServerClient {
     @Get("CodeSystem/CareConnect-ConditionCategory-1?_format={format}")
     String getCodeSystemTerminologies(String format)
 
-    @Get("StructureDefinition/CareConnect-AllergyIntolerance-1/_history/1.0?_format={format}")
+    // TODO delete:
+    @Get("StructureDefinition/CareConnect-AllergyIntolerance-1?_format={format}")
     String getStructureDefinition(String format)
 
+    @Get("StructureDefinition?_format={format}")
+    String getListStructureDefinition(String format)
+
+    @Get("StructureDefinition/{dataModel}?_format={format}")
+    String getVariableStructureDefinition(String dataModel, String format)
 }
