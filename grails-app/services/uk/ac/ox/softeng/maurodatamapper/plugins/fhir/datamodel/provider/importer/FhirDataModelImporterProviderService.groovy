@@ -17,34 +17,28 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer
 
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
-import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.client.RestClientException
 
 @Slf4j
 class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters> {
 
     @Autowired
-    DataModelService dataModelService
-
-    @Autowired
-    FHIRServerClient serverClient
+    FhirServerClient fhirServerClient
 
     @Override
     String getDisplayName() {
-        'FHIR Server Importer'
+        'FHIR Server DataModel Importer'
     }
 
     @Override
@@ -57,63 +51,57 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         true
     }
 
-    private List<DataModel> FhirServerUrl(User currentUser, FhirDataModelImporterProviderServiceParameters params) {
-        def response = new JsonSlurper().parseText(serverClient.getListStructureDefinition('json'))
-        response.entry.each { dataModelId ->
-            String dataModelName = dataModelId.resource.id
-            // TODO set count to very very large
-            def dataModelResponse = new JsonSlurper().parseText(serverClient.getVariableStructureDefinition(dataModelName, 'json'))
-            log.debug(dataModelName)
-            importDataModels(currentUser, dataModelResponse)
-        }
+    @Override
+    Boolean canImportMultipleDomains() {
+        true
     }
 
     @Override
-    DataModel importModel(User user, FhirDataModelImporterProviderServiceParameters t) {
-        log.debug("importDataModel")
-        importModels(user, t)?.first()
+    DataModel importModel(User user, FhirDataModelImporterProviderServiceParameters params) {
+        if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
+        if (!params.modelName) throw new ApiBadRequestException('FHIR02', 'Cannot import a single datamodel without the datamodel name')
+        log.debug('Import DataModel')
+        importDataModel(user, params.modelName)
     }
 
     @Override
-    List<DataModel> importModels(User currentUser, FhirDataModelImporterProviderServiceParameters params) {
-        if (!currentUser) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
-        log.debug("importDataModels")
-        try {
-            log.debug('Parsing in file content using JsonSlurper')
-            // TODO comment/uncomment next three lines
-            def response = new JsonSlurper().parseText(serverClient.getStructureDefinition('json'))
-            //            FhirServerUrl(currentUser, params)
-            importDataModels(currentUser, response)
-        } catch (RestClientException e) {
-            throw new ApiInternalException('FHIR02', 'Error making webservice call to FHIR server ' + e)
+    List<DataModel> importModels(User user, FhirDataModelImporterProviderServiceParameters params) {
+        if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
+        log.debug('Import DataModels')
+        // Just get the first entry as this will tell us how many there are
+        Map definition = fhirServerClient.getStructureDefinition(1)
+
+        // Now get the full list
+        if (definition.total > 1) {
+            definition = fhirServerClient.getStructureDefinition(definition.total as int)
+        }
+
+        // Collect all the entries as datamodels
+        definition.entry.collect {Map entry ->
+            importDataModel(user, entry.resource.id)
         }
     }
 
-    private List<DataModel> importDataModels(User currentUser, def data) {
-        if (!currentUser) throw new ApiUnauthorizedException('FHIR0101', 'User must be logged in to import model')
+    private DataModel importDataModel(User currentUser, String dataModelName) {
+        log.debug('Importing DataModel {} from FHIR', dataModelName)
 
-        String namespace = "org.fhir.server"
-        List<DataModel> imported = []
+        // Load the map for that datamodel name
+        Map<String, Object> data = fhirServerClient.getStructureDefinitionEntry(dataModelName)
 
         //dataModel initialisation
-        DataModel dataModel = new DataModel()
-        dataModel.label = data.name
-        dataModel.description = data.description
+        DataModel dataModel = new DataModel(name: dataModelName, description: data.description)
 
         //dataModel metadata
-        data.each { dataMap ->
-            dataMap.each {
-                if (it.key != 'id'
-                        && it.key != 'description'
-                        && it.key != 'differential'
-                        && it.key != 'snapshot') {
-                    dataModel.addToMetadata(new Metadata(
-                        namespace: namespace,
-                        key: it.key,
-                        value: it.value.toString()
-                    ))
-                }
+        data.each {key, value ->
+            // If key not in list then add to MD
+            if (!(key in ['id', 'description', 'differential', 'snapshot'])) {
+                dataModel.addToMetadata(
+                    namespace: namespace,
+                    key: key,
+                    value: value.toString()
+                )
             }
+
         }
 
         def datasets = data.snapshot.element
@@ -121,7 +109,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         //dataClass and dataElement list
         def idList = []
-        datasets.each { dataMap ->
+        datasets.each {dataMap ->
             String dataMapId = dataMap.id
             idList.add(dataMapId)
         }
@@ -142,7 +130,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         }
 
 
-        datasets.each { dataMap ->
+        datasets.each {dataMap ->
             DataClass dataClass = new DataClass()
             dataClass.label = dataMap.id
             dataClass.description = dataMap.definition
@@ -155,12 +143,12 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
             dataMap.each {
                 if (it.key != 'id'
-                        && it.key != 'definition'
-                        && it.key != 'constraint') {
+                    && it.key != 'definition'
+                    && it.key != 'constraint') {
                     dataClass.addToMetadata(new Metadata(
-                            namespace: namespace,
-                            key: it.key,
-                            value: it.value.toString()
+                        namespace: namespace,
+                        key: it.key,
+                        value: it.value.toString()
                     ))
                 }
             }
@@ -168,7 +156,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
             def constraintList = dataMap.constraint
 
             if (constraintList) {
-                constraintList.each { constraintMap ->
+                constraintList.each {constraintMap ->
                     constraintMap.each {
                         dataClass.addToMetadata(new Metadata(
                             namespace: namespace,
@@ -181,12 +169,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
             dataModel.addToDataClasses(dataClass)
         }
         dataModelService.checkImportedDataModelAssociations(currentUser, dataModel)
-        imported += dataModel
-        imported
+        dataModel
     }
 
-    @Override
-    Boolean canImportMultipleDomains() {
-        return null
-    }
 }

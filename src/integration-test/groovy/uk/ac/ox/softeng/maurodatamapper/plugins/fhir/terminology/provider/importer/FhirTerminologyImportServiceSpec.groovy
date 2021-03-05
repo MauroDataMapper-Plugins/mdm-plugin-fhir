@@ -1,20 +1,18 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer
 
+import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
+import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
+import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
+import uk.ac.ox.softeng.maurodatamapper.test.unit.security.TestUser
+
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
 import spock.lang.Shared
-import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
-import uk.ac.ox.softeng.maurodatamapper.security.User
-import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
-import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
-import uk.ac.ox.softeng.maurodatamapper.test.unit.security.TestUser
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -57,7 +55,7 @@ class FhirTerminologyImportServiceSpec extends BaseFunctionalSpec {
     def "verify Code system dataModel"() {
         def fileAsString = loadTestFileAsString('fhir-server-code-systems-payload.json')
         TerminologyService terminologyService = Mock()
-        FHIRServerClient serverClient = Stub(FHIRServerClient) {
+        FhirServerClient serverClient = Stub(FhirServerClient) {
             it.getCodeSystemTerminologies('json') >> fileAsString
         }
         FhirCodeSystemTerminologyService fhir = new FihrTerminologyImporterService()

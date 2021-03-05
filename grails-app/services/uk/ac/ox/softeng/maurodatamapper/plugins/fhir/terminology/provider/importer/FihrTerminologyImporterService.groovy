@@ -1,20 +1,20 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer
 
-import grails.web.databinding.DataBindingUtils
-import groovy.json.JsonSlurper
-import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirCodeSystemTerminologyService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
+import grails.web.databinding.DataBindingUtils
+import groovy.json.JsonSlurper
+import org.springframework.beans.factory.annotation.Autowired
+
 class FihrTerminologyImporterService extends FhirCodeSystemTerminologyService {
 
     @Autowired
-    FHIRServerClient serverClient
+    FhirServerClient serverClient
 
     @Override
     Terminology importTerminology(User currentUser) {
