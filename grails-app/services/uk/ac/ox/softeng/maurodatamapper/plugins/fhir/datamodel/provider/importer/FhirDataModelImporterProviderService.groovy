@@ -18,10 +18,12 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
@@ -90,86 +92,95 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         //dataModel initialisation
         DataModel dataModel = new DataModel(name: dataModelName, description: data.description)
-
-        //dataModel metadata
-        data.each {key, value ->
-            // If key not in list then add to MD
-            if (!(key in ['id', 'description', 'differential', 'snapshot'])) {
-                dataModel.addToMetadata(
-                    namespace: namespace,
-                    key: key,
-                    value: value.toString()
-                )
-            }
-
-        }
+        processMetadata(data, dataModel)
 
         def datasets = data.snapshot.element
-        // TODO append datasets with data.differential.element
+        // TODO resolve data.differential.element
 
-        //dataClass and dataElement list
-        def idList = []
-        datasets.each {dataMap ->
+        List<String> idList = []
+        datasets.each { dataMap ->
             String dataMapId = dataMap.id
             idList.add(dataMapId)
         }
-        idList.sort()
-        //not sure if this is necessary; it already appears well-organised, don't know if there is pre-existing meaning in their ordering
-        int x = 0
-        idList.each {
-            if (x == idList.size()) {
-                dataElement
-            } else if ((idList[x + 1]).substring(0, len(idList[x])) == idList[x]) {
-                dataClass
-                currentDataClass = dataClass
-            } else {
-                //dataElement
-                //add to currentDataClass
+        //idList.sort()
+
+        Boolean hasChildren = false
+        datasets.each { dataset ->
+            childCheck(idList, dataset)
+            if (hasChild = false) {
+                processDataElement(dataset, dataModel)
+            } else if (hasChild = true) {
+                processDataClass(dataset, dataModel, hasChildren, idList)
             }
-            x += 1
         }
+        dataModelService.checkImportedDataModelAssociations(currentUser, dataModel)
+        dataModel
+    }
 
+    private static Boolean childCheck(List idList, dataset) {
+        Boolean hasChild = false
+        int x = (idList.indexOf(dataset.id))
+        if (x == idList.size() - 1) {
 
-        datasets.each {dataMap ->
-            DataClass dataClass = new DataClass()
-            dataClass.label = dataMap.id
-            dataClass.description = dataMap.definition
-            if (dataMap.max == '*') {
-                dataClass.maxMultiplicity = '-1'.toInteger()
-            } else {
-                dataClass.maxMultiplicity = dataMap.max.toInteger()
+        } else if ((idList[x + 1].length() > idList[x].length()) && ((idList[x] + '.') == ((idList[x + 1]).substring(0, (idList[x].length() + 1))))) {
+            hasChild = true
+        } else {
+
+        }
+        hasChild
+    }
+
+    private void processDataClass(Map dataset, DataModel dataModel, Boolean hasChildren, List idList) {
+        DataClass dataClass = new DataClass(name: dataset.id, description: dataset.definition)
+        dataClass.minMultiplicity = dataset.min.toInteger()
+        dataClass.maxMultiplicity = (dataset.max == '*' ? -1 : dataset.max).toInteger()
+        log.debug('Created dataclass {}', dataClass.label)
+        childCheck(idList, dataset)
+        if (hasChild = true) {
+
+            DataClass childDataClass = processDataClass(dataset, dataClass)
+            // dataset of child
+            dataClass.addToDataClasses(childDataClass)
+        } else if (hasChild = false) {
+            processDataElement(dataset, dataClass)
+        } else {
+            throw new ApiInternalException('FHIR03', 'Unclear if DataClass ${dataClass} has children')
+        }
+        dataModel.addToDataClasses(dataClass)
+        dataClass
+    }
+
+    private void processDataElement(Map dataset, DataClass dataClass) {
+        DataElement dataElement = new DataElement(name: dataset.id, description: dataset.definition)
+        dataElement.minMultiplicity = dataset.min.toInteger()
+        dataElement.maxMultiplicity = (dataset.max == '*' ? -1 : dataset.max).toInteger()
+        processMetadata(dataset, dataElement)
+        dataClass.addToDataElements(dataElement)
+    }
+
+    private void processMetadata(dataset, dataItem) {
+        List<String> nestedData = ['alias', 'base', 'constraint', 'mapping']
+        dataset.each { key, value ->
+            if (!(key in (['id', 'definition', 'differential', 'snapshot'] + nestedData))) {
+                dataItem.addToMetadata(new Metadata(
+                    namespace: namespace,
+                    key: key,
+                    value: value.toString()
+                ))
             }
-            dataClass.minMultiplicity = dataMap.min.toInteger()
-
-            dataMap.each {
-                if (it.key != 'id'
-                    && it.key != 'definition'
-                    && it.key != 'constraint') {
-                    dataClass.addToMetadata(new Metadata(
-                        namespace: namespace,
-                        key: it.key,
-                        value: it.value.toString()
-                    ))
-                }
-            }
-
-            def constraintList = dataMap.constraint
-
-            if (constraintList) {
-                constraintList.each {constraintMap ->
-                    constraintMap.each {
-                        dataClass.addToMetadata(new Metadata(
+            if (key in nestedData) {
+                def keyList = dataset.key
+                keyList.each { dataMap ->
+                    dataMap.each {
+                        dataItem.addToMetadata(new Metadata(
                             namespace: namespace,
-                            key: it.key,
-                            value: it.value.toString()
+                            key: key,
+                            value: value.toString()
                         ))
                     }
                 }
             }
-            dataModel.addToDataClasses(dataClass)
         }
-        dataModelService.checkImportedDataModelAssociations(currentUser, dataModel)
-        dataModel
     }
 
 }
