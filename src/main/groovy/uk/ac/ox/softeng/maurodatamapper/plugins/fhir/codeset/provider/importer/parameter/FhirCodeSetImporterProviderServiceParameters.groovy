@@ -15,13 +15,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter
 
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.ModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportGroupConfig
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportParameterConfig
 
-class FhirTerminologyImporterProviderServiceParameters extends ModelImporterProviderServiceParameters{
+class FhirCodeSetImporterProviderServiceParameters extends ModelImporterProviderServiceParameters {
     @ImportParameterConfig(
             displayName = 'Category',
             description = 'Terminology data Category',
@@ -43,5 +43,6 @@ class FhirTerminologyImporterProviderServiceParameters extends ModelImporterProv
             )
     )
     String version
+
 
 }

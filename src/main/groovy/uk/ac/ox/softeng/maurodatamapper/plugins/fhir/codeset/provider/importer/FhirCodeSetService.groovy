@@ -15,29 +15,28 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer
-
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.security.User
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.TerminologyImporterProviderService
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer
 
 import org.springframework.beans.factory.annotation.Autowired
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.CodeSetImporterProviderService
 
-abstract class FhirCodeSystemTerminologyService<T extends FhirTerminologyImporterProviderServiceParameters>
-    extends TerminologyImporterProviderService<T> {
+abstract class FhirCodeSetService<T extends FhirCodeSetImporterProviderServiceParameters> extends
+        CodeSetImporterProviderService<T> {
 
     @Autowired
-    FhirTerminologyImporterService jsonImporter
+    FihrCodeSetImporterService jsonImporter
 
-    abstract Terminology importTerminology(User currentUser, T params)
+    abstract CodeSet importCodeSet(User currentUser, T params)
 
-    Terminology importModel(User user, T params) {
-        jsonImporter.importTerminology(user, params)
+    CodeSet importModel(User user, T params) {
+        jsonImporter.importCodeSet(user, params)
     }
 
-    List<Terminology> importModels(User user, T params) {
+    List<CodeSet> importModels(User user, T params) {
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         if (params.modelName) {
             log.debug('Model name supplied, only importing 1 model')
@@ -45,18 +44,19 @@ abstract class FhirCodeSystemTerminologyService<T extends FhirTerminologyImporte
         }
 
         try {
-            return jsonImporter.importTerminology(user)
+            return jsonImporter.importCodeSet(user)
         }
         catch (Exception e) {}
     }
 
     @Override
     String getDisplayName() {
-        'FHIR Server Terminology Importer'
+        'FHIR Server CodeSet Importer'
     }
 
     @Override
     String getVersion() {
         getClass().getPackage().getSpecificationVersion() ?: 'SNAPSHOT'
     }
+
 }

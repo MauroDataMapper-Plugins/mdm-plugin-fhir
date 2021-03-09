@@ -15,29 +15,43 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.codset.provider.importer
 
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
+import grails.testing.spock.OnceBefore
+import grails.util.BuildSettings
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FihrCodeSetImporterService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
+import java.nio.charset.Charset
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
 @Slf4j
 @Integration
 @Rollback
-class FhirTerminologyImportServiceSpec extends BaseIntegrationSpec {
+class FhirCodsetImportServiceSpec extends BaseIntegrationSpec {
 
     @Autowired
-    FhirCodeSystemTerminologyService fhirCodeSystemTerminologyService
+    FhirTerminologyImporterService fhirTerminologyImporterService
+
+    @Autowired
+    FihrCodeSetImporterService fihrCodeSetImporterService
+
+    CodeSetService codeSetService
 
     TerminologyService terminologyService
 
@@ -56,51 +70,39 @@ class FhirTerminologyImportServiceSpec extends BaseIntegrationSpec {
         checkAndSave(folder)
     }
 
-    def "verify Terminology "() {
+    byte[] loadTestFile(String filename) {
+        Path testFilePath = resourcesPath.resolve("${filename}").toAbsolutePath()
+        assert Files.exists(testFilePath)
+        Files.readAllBytes(testFilePath)
+    }
+
+    def "verify CodeSets"() {
         given:
         setupDomainData()
+
         String entryId = 'Care Connect Condition Category'
-        def parameters = new FhirTerminologyImporterProviderServiceParameters(
+        def param = new FhirTerminologyImporterProviderServiceParameters(
                 modelName: entryId,
         )
-        parameters.category = "CareConnect-ConditionCategory-1"
-        parameters.version = "1.0"
-        when:
-        def terminology = fhirCodeSystemTerminologyService.importTerminology(admin, parameters)
 
-        then:
-        !terminology.id
+        Map terminologies = new JsonSlurper().parseText(new String(loadTestFile("fhir-server-code-systems-payload.json"), Charset.defaultCharset()))
+        Map codeSetMap = new JsonSlurper().parseText(new String(loadTestFile("fhir-server-value-set-payload.json"), Charset.defaultCharset()))
 
         when:
+        def terminology = fhirTerminologyImporterService.bindMapToTerminology(admin, terminologies)
         terminology.folder = folder
         check(terminology)
 
-        then:
-        !terminology.hasErrors()
-
-        when:
         Terminology saved = terminologyService.saveModelWithContent(terminology)
-
-        then:
         saved.id
         saved.label == 'Care Connect Condition Category'
 
-    }
-
-    def "verify Code system terminology"() {
-        given:
-        String entryId = 'Care Connect Condition Category'
-        def parameters = new FhirTerminologyImporterProviderServiceParameters(
-                modelName: entryId,
-                category: "CareConnect-ConditionCategory-1",
-                version: "1.0"
-        )
-
-        when:
-        def imported = fhirCodeSystemTerminologyService.importTerminology(admin, parameters)
+        def codeSet = fihrCodeSetImporterService.bindMapToCodeSet(admin, codeSetMap as HashMap)
+        codeSet.folder = folder
+        CodeSet savedCodeSet = codeSetService.saveModelWithContent(codeSet)
 
         then:
-        imported
-        imported.label == entryId
+        savedCodeSet.id
+        savedCodeSet.label == 'Care Connect Condition Category'
     }
 }
