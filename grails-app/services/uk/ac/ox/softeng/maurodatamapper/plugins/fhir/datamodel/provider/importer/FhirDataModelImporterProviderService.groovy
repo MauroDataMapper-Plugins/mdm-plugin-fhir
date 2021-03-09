@@ -74,88 +74,107 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         Map definition = fhirServerClient.getStructureDefinition(1)
 
         // Now get the full list
-        if (definition.total > 1) {
-            definition = fhirServerClient.getStructureDefinition(definition.total as int)
+        try {
+            if (definition.total > 1) {
+                definition = fhirServerClient.getStructureDefinition(definition.total as int)
+            }
+        } catch (Exception ex) {
+            throw new ApiInternalException('FHIR03', 'Could not import Fhir models', ex)
         }
 
         // Collect all the entries as datamodels
-        definition.entry.collect {Map entry ->
+        definition.entry.collect { Map entry ->
             importDataModel(user, entry.resource.id)
         }
     }
 
     private DataModel importDataModel(User currentUser, String dataModelName) {
+        // TODO not confident about namespace - appears to be "uk.ac.ox.soft.....plugins.fhir.datamodel.provider.importer"
         log.debug('Importing DataModel {} from FHIR', dataModelName)
 
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getStructureDefinitionEntry(dataModelName)
 
         //dataModel initialisation
-        DataModel dataModel = new DataModel(name: dataModelName, description: data.description)
+        DataModel dataModel = new DataModel(label: dataModelName, description: data.description)
         processMetadata(data, dataModel)
 
-        def datasets = data.snapshot.element
+        List<Map> datasets = data.snapshot.element
         // TODO resolve data.differential.element
 
-        List<String> idList = []
-        datasets.each { dataMap ->
-            String dataMapId = dataMap.id
-            idList.add(dataMapId)
-        }
-        //idList.sort()
+        List<String> datasetIds = datasets.collect { it.id } as List<String>
 
-        Boolean hasChildren = false
-        datasets.each { dataset ->
-            childCheck(idList, dataset)
-            if (hasChild = false) {
-                processDataElement(dataset, dataModel)
-            } else if (hasChild = true) {
-                processDataClass(dataset, dataModel, hasChildren, idList)
-            }
+        Map<String, List<String>> dataItemMap = datasetIds.collectEntries { id ->
+            [id, id.tokenize('.').toList()]
         }
+
+        // find all dcs
+        List<String> dataClassKeys = dataItemMap
+            .findAll { key, value ->
+                value.last() == 'id'
+            }.collect { key, value ->
+            value.findAll { it != 'id' }.join('.')
+        }
+
+        log.debug('stop')
+
+        //Iterate through DCs and map and add to parent DC
+        dataClassKeys.each { dataClassKey ->
+            Map dataset = datasets.find { dataset -> dataset.id == dataClassKey }
+            DataClass parentDataClass = findParentDataClass(dataClassKey, dataModel)
+            processDataClass(dataset, parentDataClass, dataModel)
+        }
+
+        //Iterate Map for elements
+        dataItemMap.findAll { key, value ->
+            !(key in dataClassKeys)
+        }.each { key, value ->
+            Map dataset = datasets.find { dataset -> dataset.id == key }
+            DataClass parentDataClass = findParentDataClass(key, dataModel)
+            processDataElement(dataset, parentDataClass)
+            //DataClass referenceDc = dataClasses.find{it.label = value.last()}
+        }
+
+        //dataItemMap.findAll { key, value ->
+        //    referenceDCs = dataClassKeys.find { it.label = value.last() }
+        //}
+
         dataModelService.checkImportedDataModelAssociations(currentUser, dataModel)
         dataModel
     }
 
-    private static Boolean childCheck(List idList, dataset) {
-        Boolean hasChild = false
-        int x = (idList.indexOf(dataset.id))
-        if (x == idList.size() - 1) {
-
-        } else if ((idList[x + 1].length() > idList[x].length()) && ((idList[x] + '.') == ((idList[x + 1]).substring(0, (idList[x].length() + 1))))) {
-            hasChild = true
-        } else {
-
+    private static DataClass findParentDataClass(String dataClassKey, DataModel dataModel) {
+        List<String> keySections = dataClassKey.tokenize('.')
+        keySections.removeLast()
+        if (!keySections) return null
+        String parentDataClass = keySections.join('.')
+        dataModel.dataClasses.find { dataClass ->
+            parentDataClass == dataClass.label
+            dataClass
         }
-        hasChild
     }
 
-    private void processDataClass(Map dataset, DataModel dataModel, Boolean hasChildren, List idList) {
-        DataClass dataClass = new DataClass(name: dataset.id, description: dataset.definition)
-        dataClass.minMultiplicity = dataset.min.toInteger()
-        dataClass.maxMultiplicity = (dataset.max == '*' ? -1 : dataset.max).toInteger()
-        log.debug('Created dataclass {}', dataClass.label)
-        childCheck(idList, dataset)
-        if (hasChild = true) {
-
-            DataClass childDataClass = processDataClass(dataset, dataClass)
-            // dataset of child
-            dataClass.addToDataClasses(childDataClass)
-        } else if (hasChild = false) {
-            processDataElement(dataset, dataClass)
-        } else {
-            throw new ApiInternalException('FHIR03', 'Unclear if DataClass ${dataClass} has children')
+    private void processDataClass(Map dataset, DataClass parentDataClass, DataModel dataModel) {
+        DataClass dataClass = new DataClass(label: dataset.id, description: dataset.definition)
+        dataClass.minMultiplicity = parseInt(dataset.min)
+        dataClass.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
+        log.debug('Created dataClass {}', dataClass.label)
+        processMetadata(dataset, dataClass)
+        if (parentDataClass) {
+            parentDataClass.addToDataClasses(dataClass)
         }
         dataModel.addToDataClasses(dataClass)
         dataClass
     }
 
-    private void processDataElement(Map dataset, DataClass dataClass) {
-        DataElement dataElement = new DataElement(name: dataset.id, description: dataset.definition)
-        dataElement.minMultiplicity = dataset.min.toInteger()
-        dataElement.maxMultiplicity = (dataset.max == '*' ? -1 : dataset.max).toInteger()
+    private void processDataElement(Map dataset, DataClass parentDataClass) {
+        DataElement dataElement = new DataElement(label: dataset.id, description: dataset.definition)
+        dataElement.minMultiplicity = parseInt(dataset.min)
+        dataElement.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
+        log.debug('Created dataElement {}', dataElement.label)
         processMetadata(dataset, dataElement)
-        dataClass.addToDataElements(dataElement)
+        parentDataClass.addToDataElements(dataElement)
+        dataElement
     }
 
     private void processMetadata(dataset, dataItem) {
@@ -181,6 +200,17 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
                 }
             }
         }
+    }
+
+    private static Integer parseInt(def value) {
+        if (value instanceof Number) return value.toInteger()
+        if (value instanceof String) {
+            try {
+                return value.toInteger()
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        null
     }
 
 }

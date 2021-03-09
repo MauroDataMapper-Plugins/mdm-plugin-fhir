@@ -38,7 +38,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
 
     def 'Test importing single datamodel'() {
         given:
-        String entryId = 'CareConnect-Condition-1'
+        String entryId = 'CareConnect-OxygenSaturation-Observation-1'
         def parameters = new FhirDataModelImporterProviderServiceParameters(
             modelName: entryId
         )
