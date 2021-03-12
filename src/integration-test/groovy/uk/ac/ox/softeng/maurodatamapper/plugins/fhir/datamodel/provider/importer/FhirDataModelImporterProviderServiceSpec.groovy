@@ -17,35 +17,109 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer
 
-
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import grails.testing.mixin.integration.Integration
+import grails.testing.spock.OnceBefore
+import grails.util.BuildSettings
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
+import spock.lang.Shared
+
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 @Slf4j
 @Integration
 class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
-
     FhirDataModelImporterProviderService fhirDataModelImporterProviderService
+    @Shared
+    Path resourcesPath
+
+    @OnceBefore
+    void setupServerClient() {
+        resourcesPath = Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources').toAbsolutePath()
+        fhirDataModelImporterProviderService.fhirServerClient = Stub(FhirServerClient) {
+            it.getStructureDefinitionEntry(_) >> {String entryId ->
+                String content = loadTestFileAsString("${entryId}.json")
+                new JsonSlurper().parseText(content)
+            }
+        }
+    }
 
     @Override
     void setupDomainData() {
     }
 
-    def 'Test importing single datamodel'() {
+    def 'CCPR01: Test importing CareConnect-ProcedureRequest-1 datamodel'() {
+        given:
+        String entryId = 'CareConnect-ProcedureRequest-1'
+        def parameters = new FhirDataModelImporterProviderServiceParameters(
+            modelName: entryId
+        )
+        when:
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        then:
+        imported
+        imported.label == entryId
+        assert 'more tests' == 'true'
+    }
+
+    def 'CCOS01: Test importing CareConnect-OxygenSaturation-Observation-1 datamodel'() {
         given:
         String entryId = 'CareConnect-OxygenSaturation-Observation-1'
         def parameters = new FhirDataModelImporterProviderServiceParameters(
             modelName: entryId
         )
-
         when:
         DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        then:
+        imported
+        imported.label == entryId
+        assert 'more tests' == 'true'
+    }
 
+    def 'CCBP01: Test importing CareConnect-BloodPressure-Observation-1 datamodel'() {
+        given:
+        String entryId = 'CareConnect-BloodPressure-Observation-1'
+        def parameters = new FhirDataModelImporterProviderServiceParameters(
+            modelName: entryId
+        )
+        when:
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        then:
+        imported
+        imported.label == entryId
+        assert 'more tests' == 'true'
+    }
+
+    def 'CCL01: Test importing CareConnect-Location-1 datamodel'() {
+        given:
+        String entryId = 'CareConnect-Location-1'
+        def parameters = new FhirDataModelImporterProviderServiceParameters(
+            modelName: entryId
+        )
+        when:
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        then:
+        imported
+        imported.label == entryId
+        assert 'more tests' == 'true'
+    }
+
+    def 'CCMD01: Test importing CareConnect-MedicationDispense-1 datamodel'() {
+        given:
+        String entryId = 'CareConnect-MedicationDispense-1'
+        def parameters = new FhirDataModelImporterProviderServiceParameters(
+            modelName: entryId
+        )
+        when:
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
         then:
         imported
         imported.label == entryId
@@ -55,14 +129,18 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
     def 'Test importing multiple datamodel'() {
         given:
         def parameters = new FhirDataModelImporterProviderServiceParameters()
-
         when:
         List<DataModel> imported = fhirDataModelImporterProviderService.importModels(admin, parameters)
-
         then:
         imported
         // STU3 has 111 models
         imported.size() == 111
         assert 'more tests' == 'true'
+    }
+
+    String loadTestFileAsString(String filename) {
+        Path testFilePath = resourcesPath.resolve("${filename}").toAbsolutePath()
+        assert Files.exists(testFilePath)
+        Files.readString(testFilePath)
     }
 }

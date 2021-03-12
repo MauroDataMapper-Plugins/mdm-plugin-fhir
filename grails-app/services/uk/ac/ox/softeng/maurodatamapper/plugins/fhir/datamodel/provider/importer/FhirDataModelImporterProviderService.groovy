@@ -100,23 +100,34 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         processMetadata(data, dataModel)
 
         List<Map> datasets = data.snapshot.element
-        // TODO resolve data.differential.element
+        // TODO confirm data.differential.element is resolved - should be processed as metadata now
 
-        List<String> datasetIds = datasets.collect { it.id } as List<String>
+        // resolving odd id names eg OxygenSaturation valueQuantity
+        datasets = datasets.each {dataset ->
+            if (dataset.sliceName && (dataset.path.tokenize('.').last() == dataset.sliceName)) {
+                String accursedSliceName = dataset.sliceName
+                datasets.each {pathDataset ->
+                    if (pathDataset.id.contains(accursedSliceName)) {
+                        pathDataset.id = pathDataset.path
+                        log.debug('changed ids' + pathDataset.id.toString())
+                    }
+                }
+            }
+        }
 
-        Map<String, List<String>> dataItemMap = datasetIds.collectEntries { id ->
+        List<String> datasetIds = datasets.collect {it.id} as List<String>
+
+        Map<String, List<String>> dataItemMap = datasetIds.collectEntries {id ->
             [id, id.tokenize('.').toList()]
         }
 
         // find all dcs
         List<String> dataClassKeys = dataItemMap
-            .findAll { key, value ->
+            .findAll {key, value ->
                 value.last() == 'id'
             }.collect { key, value ->
             value.findAll { it != 'id' }.join('.')
         }
-
-        log.debug('stop')
 
         //Iterate through DCs and map and add to parent DC
         dataClassKeys.each { dataClassKey ->
@@ -180,7 +191,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     private void processMetadata(dataset, dataItem) {
         List<String> nestedData = ['alias', 'base', 'constraint', 'mapping']
         dataset.each { key, value ->
-            if (!(key in (['id', 'definition', 'differential', 'snapshot'] + nestedData))) {
+            if (!(key in (['id', 'definition', 'snapshot'] + nestedData))) {
                 dataItem.addToMetadata(new Metadata(
                     namespace: namespace,
                     key: key,
