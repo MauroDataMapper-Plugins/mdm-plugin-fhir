@@ -89,7 +89,6 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     }
 
     private DataModel importDataModel(User currentUser, String dataModelName) {
-        // TODO not confident about namespace - appears to be "uk.ac.ox.soft.....plugins.fhir.datamodel.provider.importer"
         log.debug('Importing DataModel {} from FHIR', dataModelName)
 
         // Load the map for that datamodel name
@@ -100,7 +99,6 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         processMetadata(data, dataModel)
 
         List<Map> datasets = data.snapshot.element
-        // TODO confirm data.differential.element is resolved - should be processed as metadata now
 
         // resolving odd id names eg OxygenSaturation valueQuantity
         datasets = datasets.each {dataset ->
