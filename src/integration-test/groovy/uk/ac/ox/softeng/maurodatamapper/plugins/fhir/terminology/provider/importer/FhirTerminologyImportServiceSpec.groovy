@@ -12,6 +12,7 @@ import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
+import spock.lang.Ignore
 import spock.lang.Shared
 
 import java.nio.file.Files
@@ -20,6 +21,7 @@ import java.nio.file.Paths
 
 @Slf4j
 @Integration
+@Ignore('Not finished')
 class FhirTerminologyImportServiceSpec extends BaseFunctionalSpec {
 
     @Shared
