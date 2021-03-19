@@ -187,26 +187,74 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     }
 
     private void processMetadata(dataset, dataItem) {
-        List<String> nestedData = ['alias', 'base', 'constraint', 'mapping']
+        List<String> nonMetadata = ['id', 'definition', 'description', 'min', 'max', 'snapshot', 'differential']
         dataset.each { key, value ->
-            if (!(key in (['id', 'definition', 'snapshot'] + nestedData))) {
+            if (!(key in nonMetadata)) {
+                if (!(value.getClass() == String || value.getClass() == Integer || value.getClass() == Boolean)) {
+                    processNestedMetadata(key, value, dataItem)
+                } else {
+                    dataItem.addToMetadata(new Metadata(
+                        namespace: namespace,
+                        key: key,
+                        value: value.toString()
+                    ))
+                }
+            }
+        }
+    }
+
+    private void processNestedMetadata(key, dataCollection, dataItem) {
+        try {
+            if (dataCollection.getClass() == ArrayList) {
+                processListedMetadata(key, dataCollection, dataItem)
+            }
+            if (dataCollection.getClass() == org.apache.groovy.json.internal.LazyMap) {
+                processMappedMetadata(key, dataCollection, dataItem)
+            }
+        } catch (Exception ex) {
+            throw new ApiInternalException('FHIR04', 'bad nesting, nests are either map or list', ex)
+        }
+    }
+
+    private void processListedMetadata(key, ArrayList list, dataItem) {
+        if (list.size() > 1) {
+            list.eachWithIndex { item, index ->
+                if (item.getClass() == String || item.getClass() == Integer || item.getClass() == Boolean) {
+                    dataItem.addToMetadata(new Metadata(
+                        namespace: namespace,
+                        key: key + '[' + index.toString() + ']',
+                        value: item.toString()
+                    ))
+                } else if (item.getClass() == org.apache.groovy.json.internal.LazyMap) {
+                    processMappedMetadata(key + '[' + index.toString() + ']', item, dataItem)
+                }
+            }
+        } else {
+            list.each { item ->
+                if (item.getClass() == String || item.getClass() == Integer || item.getClass() == Boolean) {
+                    dataItem.addToMetadata(new Metadata(
+                        namespace: namespace,
+                        key: key,
+                        value: item.toString()
+                    ))
+                } else if (item.getClass() == org.apache.groovy.json.internal.LazyMap) {
+                    processMappedMetadata(key, item, dataItem)
+                }
+            }
+        }
+    }
+
+    private void processMappedMetadata(String key, org.apache.groovy.json.internal.LazyMap map, dataItem) {
+        map.each { mapKey, mapVal ->
+            if (mapVal.getClass() == String || mapVal.getClass() == Integer || mapVal.getClass() == Boolean) {
                 dataItem.addToMetadata(new Metadata(
                     namespace: namespace,
-                    key: key,
-                    value: value.toString()
+                    key: key + '.' + mapKey,
+                    value: mapVal.toString()
                 ))
             }
-            if (key in nestedData) {
-                def keyList = dataset.key
-                keyList.each { dataMap ->
-                    dataMap.each {
-                        dataItem.addToMetadata(new Metadata(
-                            namespace: namespace,
-                            key: key,
-                            value: value.toString()
-                        ))
-                    }
-                }
+            if (mapVal.getClass() == ArrayList) {
+                processListedMetadata(key + '.' + mapKey, mapVal, dataItem)
             }
         }
     }

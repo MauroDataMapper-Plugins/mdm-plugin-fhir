@@ -18,6 +18,8 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
@@ -56,74 +58,60 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
     void setupDomainData() {
     }
 
-    def 'CCPR01: Test importing CareConnect-ProcedureRequest-1 datamodel'() {
+    def 'CC01: Test importing CareConnect-ProcedureRequest-1 datamodel'() {
         given:
         String entryId = 'CareConnect-ProcedureRequest-1'
         def parameters = new FhirDataModelImporterProviderServiceParameters(
             modelName: entryId
         )
         when:
-        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
         then:
-        imported
-        imported.label == entryId
-        assert 'more tests' == 'true'
+        dataModel
+        dataModel.label == entryId
+
+        dataModel.dataClasses.size() == 13
+        dataModel.metadata.size() == 19
+
+        when:
+        DataClass dataClass = dataModel.childDataClasses.find { it.label == 'ProcedureRequest' }
+
+        then:
+        dataClass
+        dataClass.minMultiplicity == 0
+        dataClass.maxMultiplicity == -1
+        dataClass.metadata.size() == 36
+        dataClass.dataElements.size() == 100
+
+        when:
+        DataElement dataElement = dataClass.dataElements.find { it.label == 'ProcedureRequest.id' }
+
+        then:
+        dataElement
+        dataElement.description == 'The logical id of the resource, as used in the URL for the resource. Once assigned, this value never changes.'
+        dataElement.minMultiplicity == 0
+        dataElement.maxMultiplicity == 1
+        dataElement.metadata.size() == 16
+
+        dataClass.dataClasses.size() == 12
     }
 
-    def 'CCOS01: Test importing CareConnect-OxygenSaturation-Observation-1 datamodel'() {
+    def 'CC02: Test importing CareConnect-OxygenSaturation-Observation-1 datamodel'() {
         given:
         String entryId = 'CareConnect-OxygenSaturation-Observation-1'
         def parameters = new FhirDataModelImporterProviderServiceParameters(
             modelName: entryId
         )
         when:
-        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
         then:
-        imported
-        imported.label == entryId
-        assert 'more tests' == 'true'
-    }
+        dataModel
+        dataModel.label == entryId
 
-    def 'CCBP01: Test importing CareConnect-BloodPressure-Observation-1 datamodel'() {
-        given:
-        String entryId = 'CareConnect-BloodPressure-Observation-1'
-        def parameters = new FhirDataModelImporterProviderServiceParameters(
-            modelName: entryId
-        )
         when:
-        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        DataClass dataClass = dataModel.dataClasses.find { it.label == 'Observation.valueQuantity' }
         then:
-        imported
-        imported.label == entryId
-        assert 'more tests' == 'true'
-    }
-
-    def 'CCL01: Test importing CareConnect-Location-1 datamodel'() {
-        given:
-        String entryId = 'CareConnect-Location-1'
-        def parameters = new FhirDataModelImporterProviderServiceParameters(
-            modelName: entryId
-        )
-        when:
-        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
-        then:
-        imported
-        imported.label == entryId
-        assert 'more tests' == 'true'
-    }
-
-    def 'CCMD01: Test importing CareConnect-MedicationDispense-1 datamodel'() {
-        given:
-        String entryId = 'CareConnect-MedicationDispense-1'
-        def parameters = new FhirDataModelImporterProviderServiceParameters(
-            modelName: entryId
-        )
-        when:
-        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
-        then:
-        imported
-        imported.label == entryId
-        assert 'more tests' == 'true'
+        (dataClass.metadata.find { it.key == 'sliceName' }).value == 'valueQuantity'
     }
 
     def 'Test importing multiple datamodel'() {
@@ -132,10 +120,8 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         when:
         List<DataModel> imported = fhirDataModelImporterProviderService.importModels(admin, parameters)
         then:
-        imported
         // STU3 has 111 models
         imported.size() == 111
-        assert 'more tests' == 'true'
     }
 
     String loadTestFileAsString(String filename) {
