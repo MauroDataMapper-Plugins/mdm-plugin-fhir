@@ -17,18 +17,77 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 
-import io.micronaut.http.annotation.Get
+import io.micronaut.core.type.Argument
+import io.micronaut.http.HttpRequest
+import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
+import io.micronaut.http.exceptions.HttpException
+import io.micronaut.http.uri.UriBuilder
+import io.reactivex.Flowable
 
-@Client('http://fhir.hl7.org.uk/STU3/')
-interface FhirServerClient {
+import javax.inject.Inject
 
-    public static String FHIR_MEDIA_TYPE = 'application/json+fhir;charset=utf-8'
+/**
+ * RESTful API Client connection to FHIR server.
+ *
+ * See https://www.hl7.org/fhir/http.html for complete documentation on the API.
+ *
+ * Notable parameters:
+ * <pre>
+ * * _format=json :: Ensures JSON returned
+ * * _count=x :: Paginates the call to x entries
+ * * _summary=text :: Returns a text only summary of the endpoint. Especially useful for the "list all models" endpoints.
+ * * _summary=count :: Returns a count only summary of the endpoint. Especially useful for the first "list all models" endpoints.
+ * </pre
+ */
 
-    @Get(value = 'StructureDefinition?_format=json&_count={count}', produces = [FHIR_MEDIA_TYPE], consumes = [FHIR_MEDIA_TYPE])
-    Map<String, Object> getStructureDefinition(int count)
+class FhirServerClient {
 
-    @Get(value = 'StructureDefinition/{entryId}?_format=json', produces = [FHIR_MEDIA_TYPE], consumes = [FHIR_MEDIA_TYPE])
-    Map<String, Object> getStructureDefinitionEntry(String entryId)
+    @Client('http://fhir.hl7.org.uk')
+    @Inject
+    HttpClient client
+
+    Map<String, Object> getVersionedStructureDefinition(String version, int count) {
+        if (!version) return getCurrentStructureDefinition(count)
+        retrieveMapFromClient('/{version}/StructureDefinition?_summary=text&_format=json&_count={count}',
+                              [version: version,
+                               count  : count])
+    }
+
+    Map<String, Object> getVersionedStructureDefinitionCount(String version) {
+        if (!version) return getCurrentStructureDefinitionCount()
+        retrieveMapFromClient('/{version}/StructureDefinition?_summary=count&_format=json', [version: version])
+    }
+
+    Map<String, Object> getVersionedStructureDefinitionEntry(String version, String entryId) {
+        if (!version) return getCurrentStructureDefinitionEntry(entryId)
+        retrieveMapFromClient('/{version}/StructureDefinition/{entryId}?_format=json',
+                              [version: version,
+                               entryId: entryId])
+    }
+
+    Map<String, Object> getCurrentStructureDefinition(int count) {
+        retrieveMapFromClient('/StructureDefinition?_summary=text&_format=json&_count={count}', [count: count])
+    }
+
+    Map<String, Object> getCurrentStructureDefinitionCount() {
+        retrieveMapFromClient('/StructureDefinition?_summary=count&_format=json', [:])
+    }
+
+    Map<String, Object> getCurrentStructureDefinitionEntry(String entryId) {
+        retrieveMapFromClient('/StructureDefinition/{entryId}?_format=json', [entryId: entryId])
+    }
+
+    private Map<String, Object> retrieveMapFromClient(String url, Map params) {
+        try {
+            Flowable<Map> response = client.retrieve(HttpRequest.GET(UriBuilder.of
+            (url).expand(params)), Argument.of(Map, String, Object)) as Flowable<Map>
+            response.blockingFirst()
+        }
+        catch (HttpException ex) {
+            throw new ApiInternalException('FHIRC01', "Could not load resource from endpoint [${url}]", ex)
+        }
+    }
 }

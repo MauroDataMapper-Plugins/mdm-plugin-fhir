@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client
 
+
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import grails.testing.mixin.integration.Integration
@@ -37,24 +38,36 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
     void setupDomainData() {
     }
 
-    void 'Test the structure definition endpoint'() {
+
+    void 'STU3-01: Test the structure definition count endpoint'() {
         when:
-        def result = fhirServerClient.getStructureDefinition(1)
+        def result = fhirServerClient.getVersionedStructureDefinitionCount('STU3')
+
+        then:
+        result instanceof Map
+        result.total == 111
+        result.resourceType == 'Bundle'
+        result.id
+    }
+
+    void 'STU3-02: Test the structure definition summary endpoint'() {
+        when:
+        def result = fhirServerClient.getVersionedStructureDefinition('STU3', 2)
 
         then:
         result instanceof Map
         result.total == 111
         result.entry instanceof List
-        result.entry.size() == 1
+        result.entry.size() == 2
         result.entry.first().resource.id
     }
 
-    void 'Test the structure definition entry endpoint'() {
+    void 'STU3-03: Test the structure definition entry endpoint'() {
         given:
         String entryId = 'CareConnect-Condition-1'
 
         when:
-        def result = fhirServerClient.getStructureDefinitionEntry(entryId)
+        def result = fhirServerClient.getVersionedStructureDefinitionEntry('STU3', entryId)
 
         then:
         result instanceof Map
@@ -62,5 +75,54 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
         result.resourceType == 'StructureDefinition'
         result.name == entryId
 
+    }
+
+    void 'PUB-01: Test the structure definition count endpoint'() {
+        when:
+        def result = fhirServerClient.getCurrentStructureDefinitionCount()
+
+        then:
+        result instanceof Map
+        result.total == 51
+        result.resourceType == 'Bundle'
+        result.id
+    }
+
+    void 'PUB-02: Test the structure definition summary endpoint'() {
+        when:
+        def result = fhirServerClient.getCurrentStructureDefinition(2)
+
+        then:
+        result instanceof Map
+        result.total == 51
+        result.entry instanceof List
+        result.entry.size() == 2
+        result.entry.first().resource.id
+    }
+
+    void 'PUB-03: Test the structure definition entry endpoint'() {
+        given:
+        String entryId = 'CareConnect-Condition-1'
+
+        when:
+        def result = fhirServerClient.getCurrentStructureDefinitionEntry(entryId)
+
+        then:
+        result instanceof Map
+        result.id == entryId
+        result.resourceType == 'StructureDefinition'
+        result.name == entryId
+
+    }
+
+    void 'VER-01: Test the structure definition count endpoint with a blank version'() {
+        when:
+        def result = fhirServerClient.getVersionedStructureDefinitionCount('')
+
+        then:
+        result instanceof Map
+        result.total == 51
+        result.resourceType == 'Bundle'
+        result.id
     }
 }
