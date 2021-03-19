@@ -8,7 +8,7 @@ import io.micronaut.http.client.annotation.Client
 @Client("http://fhir.hl7.org.uk/")
 @Header(name = "ContentType", value="application/fhir+json")
 interface FHIRServerClient {
-    @Get("STU3/CodeSystem/CareConnect-ConditionCategory-1?_format={format}")
+    @Get("STU3/CodeSystem/CareConnect-ConditionCategory-1/_history/1.0?_format={format}")
     String getCodeSystemTerminologies(String format)
 
     @Get("ValueSet/CareConnect-AdministrativeGender-1/_history/1.0?_format={format}")

@@ -9,11 +9,17 @@ import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.F
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 class FihrCodeSetImporterService extends FhirCodeSetService {
 
     @Autowired
     FHIRServerClient serverClient
+
+    @Autowired
+    TerminologyService terminologyService
 
     @Override
     Boolean canImportMultipleDomains() {
@@ -33,11 +39,21 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
     CodeSet bindMapToCodeSet(User user, HashMap codeSetMap) {
         if (!codeSetMap) throw new ApiBadRequestException('FHIR04', 'No codeSetMap supplied to import')
 
+        def terminologies = terminologyService.findAllByLabel(codeSetMap.name)
         def codeSet = new CodeSet()
         codeSetMap.codeSystem.concept.each { concept ->
             BytesRef bytesRef = new BytesRef()
- //           Term term = new Term("man")
- //           codeSet.addToTerms(term)
+            terminologies.each { terminology ->
+                terminology.terms.map { term ->
+                    Term codeSetTerm = new Term()
+                    codeSetTerm.label = term.label
+                    codeSetTerm.code = term.code
+                    codeSetTerm.definition = term.definition
+                    codeSetTerm.url = term.url
+                    codeSet.addToTerms(term)
+                }
+            }
+
         }
 
         codeSet.label = codeSetMap.contained.getAt(0).name
