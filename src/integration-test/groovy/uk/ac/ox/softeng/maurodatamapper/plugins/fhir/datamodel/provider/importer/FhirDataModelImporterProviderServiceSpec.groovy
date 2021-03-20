@@ -19,8 +19,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importe
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
@@ -39,17 +37,28 @@ import java.nio.file.Paths
 @Slf4j
 @Integration
 class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
+
     FhirDataModelImporterProviderService fhirDataModelImporterProviderService
+
     @Shared
     Path resourcesPath
 
     @OnceBefore
     void setupServerClient() {
-        resourcesPath = Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources').toAbsolutePath()
+        resourcesPath =
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'structure_definitions').toAbsolutePath()
+    }
+
+    void setup() {
         fhirDataModelImporterProviderService.fhirServerClient = Stub(FhirServerClient) {
-            it.getStructureDefinitionEntry(_) >> {String entryId ->
-                String content = loadTestFileAsString("${entryId}.json")
-                new JsonSlurper().parseText(content)
+            getVersionedStructureDefinitionEntry(_, _) >> {String version, String entryId ->
+                loadJsonMap "${entryId}.json"
+            }
+            getVersionedStructureDefinition(_, _) >> {String version, int c ->
+                loadJsonMap 'StructureDefintion_text.json'
+            }
+            getVersionedStructureDefinitionCount(_) >> {String version ->
+                loadJsonMap 'StructureDefintion_count.json'
             }
         }
     }
@@ -62,6 +71,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         given:
         String entryId = 'CareConnect-ProcedureRequest-1'
         def parameters = new FhirDataModelImporterProviderServiceParameters(
+            fhirVersion: 'STU3',
             modelName: entryId
         )
         when:
@@ -72,61 +82,259 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         dataModel.dataClasses.size() == 13
         dataModel.metadata.size() == 19
+        dataModel.childDataClasses.size() == 1
 
         when:
-        DataClass dataClass = dataModel.childDataClasses.find { it.label == 'ProcedureRequest' }
+        DataClass dataClass = dataModel.childDataClasses.first()
 
         then:
         dataClass
-        dataClass.minMultiplicity == 0
-        dataClass.maxMultiplicity == -1
+        dataClass.label == 'ProcedureRequest'
+        dataClass.minMultiplicity == null
+        dataClass.maxMultiplicity == null
         dataClass.metadata.size() == 36
-        dataClass.dataElements.size() == 100
+        dataClass.dataClasses.size() == 8
+        dataClass.dataClasses.collect {it.label} == [
+            'identifier', 'requisition', 'category', 'code', 'requester', 'reasonCode', 'bodySite', 'note'
+        ]
+        dataClass.dataElements.size() == 32
+        dataClass.dataElements.collect {it.label} == [
+            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', 'identifier', 'definition', 'basedOn',
+            'replaces', 'requisition', 'status', 'intent', 'priority', 'doNotPerform', 'category', 'code', 'subject', 'context', 'authoredOn',
+            'requester', 'performerType', 'performer', 'reasonCode', 'reasonReference', 'supportingInfo', 'specimen', 'bodySite', 'note',
+            'relevantHistory',
+        ]
 
         when:
-        DataElement dataElement = dataClass.dataElements.find { it.label == 'ProcedureRequest.id' }
+        DataClass subDataClass = dataClass.dataClasses.find {it.label == 'identifier'}
 
         then:
-        dataElement
-        dataElement.description == 'The logical id of the resource, as used in the URL for the resource. Once assigned, this value never changes.'
-        dataElement.minMultiplicity == 0
-        dataElement.maxMultiplicity == 1
-        dataElement.metadata.size() == 16
+        !subDataClass.dataClasses
+        subDataClass.dataElements.size() == 8
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'use', 'type', 'system', 'value', 'period', 'assigner'
+        ]
 
-        dataClass.dataClasses.size() == 12
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'requisition'}
+
+        then:
+        !subDataClass.dataClasses
+        subDataClass.dataElements.size() == 8
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'use', 'type', 'system', 'value', 'period', 'assigner'
+        ]
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'category'}
+
+        then:
+        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+        ]
+        subDataClass.dataClasses.size() == 1
+        subDataClass.dataClasses.first().label == 'coding:snomedCT'
+        subDataClass.dataClasses.first().dataElements.size() == 8
+        subDataClass.dataClasses.first().dataElements.collect {it.label} == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ]
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'code'}
+
+        then:
+        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+        ]
+        subDataClass.dataClasses.size() == 1
+        subDataClass.dataClasses.first().label == 'coding:snomedCT'
+        subDataClass.dataClasses.first().dataElements.size() == 8
+        subDataClass.dataClasses.first().dataElements.collect {it.label} == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ]
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'requester'}
+
+        then:
+        !subDataClass.dataClasses
+        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'modifierExtension', 'agent', 'onBehalfOf'
+        ]
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'reasonCode'}
+
+        then:
+        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+        ]
+        subDataClass.dataClasses.size() == 1
+        subDataClass.dataClasses.first().label == 'coding:snomedCT'
+        subDataClass.dataClasses.first().dataElements.size() == 8
+        subDataClass.dataClasses.first().dataElements.collect {it.label} == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ]
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'bodySite'}
+
+        then:
+        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+        ]
+        subDataClass.dataClasses.size() == 1
+        subDataClass.dataClasses.first().label == 'coding:snomedCT'
+        subDataClass.dataClasses.first().dataElements.size() == 8
+        subDataClass.dataClasses.first().dataElements.collect {it.label} == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ]
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'note'}
+
+        then:
+        !subDataClass.dataClasses
+        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.collect {it.label} == [
+            'id', 'extension', 'author[x]', 'time', 'text'
+        ]
     }
 
     def 'CC02: Test importing CareConnect-OxygenSaturation-Observation-1 datamodel'() {
         given:
         String entryId = 'CareConnect-OxygenSaturation-Observation-1'
         def parameters = new FhirDataModelImporterProviderServiceParameters(
+            fhirVersion: 'STU3',
             modelName: entryId
         )
         when:
         DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
+
         then:
         dataModel
         dataModel.label == entryId
+        dataModel.dataClasses.size() == 10
+        dataModel.metadata.size() == 19
+        dataModel.childDataClasses.size() == 1
 
         when:
-        DataClass dataClass = dataModel.dataClasses.find { it.label == 'Observation.valueQuantity' }
+        DataClass dataClass = dataModel.childDataClasses.first()
+
         then:
-        (dataClass.metadata.find { it.key == 'sliceName' }).value == 'valueQuantity'
+        dataClass
+        dataClass.label == 'Observation'
+        dataClass.minMultiplicity == null
+        dataClass.maxMultiplicity == null
+        dataClass.metadata.size() == 36
+        dataClass.dataClasses.size() == 10
+        dataClass.dataClasses.collect {it.label} == [
+            'identifier', 'category', 'code', 'dataAbsentReason', 'bodySite', 'method', 'referenceRange', 'related', 'component'
+        ]
+        dataClass.dataElements.size() == 28
+        dataClass.dataElements.collect {it.label} == [
+            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', 'identifier', 'basedOn', 'status',
+            'category', 'code', 'subject', 'context', 'issued', 'performer', 'valueQuantity', 'dataAbsentReason', 'interpretation', 'comment',
+            'bodySite', 'method', 'specimen', 'device', 'referenceRange', 'related', 'component',
+        ]
+
+        when:
+        DataClass subDataClass = dataClass.dataClasses.find {it.label == 'category'}
+
+        then:
+        subDataClass.dataClasses.size() == 1
+        subDataClass.dataClasses.first().label == 'coding'
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'code'}
+
+        then:
+        subDataClass.dataClasses.size() == 2
+        subDataClass.dataClasses.any {it.label == 'coding:snomedCT'}
+        subDataClass.dataClasses.any {it.label == 'coding:loinc'}
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'valueQuantity'}
+
+        then:
+        !subDataClass.dataClasses
+        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.collect {it.label} == [
+            'value', 'comparator', 'unit', 'system', 'code'
+        ]
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'bodySite'}
+
+        then:
+        subDataClass.dataClasses.size() == 1
+        subDataClass.dataClasses.first().label == 'coding:snomedCT'
+
+        when:
+        subDataClass = dataClass.dataClasses.find {it.label == 'method'}
+
+        then:
+        subDataClass.dataClasses.size() == 1
+        subDataClass.dataClasses.first().label == 'coding:snomedCT'
+
+        when:
+        DataClass componentDataClass = dataClass.dataClasses.find {it.label == 'component'}
+
+        then:
+        componentDataClass.dataClasses.size() == 3
+        componentDataClass.dataClasses.any {it.label == 'code'}
+        componentDataClass.dataClasses.any {it.label == 'valueQuantity'}
+        componentDataClass.dataClasses.any {it.label == 'dataAbsentReason'}
+
+
+        when:
+        DataClass codeComponentDataClass = componentDataClass.dataClasses.find {it.label == 'code'}
+
+        then:
+        codeComponentDataClass.dataClasses.size() == 2
+        codeComponentDataClass.dataClasses.any {it.label == 'coding:snomedCT'}
+        codeComponentDataClass.dataClasses.any {it.label == 'coding:loinc'}
+
+        when:
+        DataClass valueQuantityComponentDataClass = codeComponentDataClass.dataClasses.find {it.label == 'valueQuantity'}
+
+        then:
+        !valueQuantityComponentDataClass.dataClasses
+        valueQuantityComponentDataClass.dataElements.size() == 5
+        valueQuantityComponentDataClass.dataElements.collect {it.label} == [
+            'value', 'comparator', 'unit', 'system', 'code'
+        ]
+
+        when:
+        DataClass dataAbsentComponentDataClass = codeComponentDataClass.dataClasses.find {it.label == 'dataAbsentReason'}
+
+        then:
+        dataAbsentComponentDataClass.dataClasses.size() == 1
+        dataAbsentComponentDataClass.dataClasses.first().label == 'coding'
     }
 
-    def 'Test importing multiple datamodel'() {
+    def 'Test importing current multiple datamodels'() {
         given:
         def parameters = new FhirDataModelImporterProviderServiceParameters()
         when:
         List<DataModel> imported = fhirDataModelImporterProviderService.importModels(admin, parameters)
+
         then:
-        // STU3 has 111 models
-        imported.size() == 111
+        // Current has 51 models but we only test 2 for speed and memory
+        imported.size() == 2
+        imported.any {it.label == 'CareConnect-Condition-1'}
+        imported.any {it.label == 'Extension-CareConnect-AdmissionMethod-1'}
     }
 
-    String loadTestFileAsString(String filename) {
+    Map loadJsonMap(String filename) {
         Path testFilePath = resourcesPath.resolve("${filename}").toAbsolutePath()
         assert Files.exists(testFilePath)
-        Files.readString(testFilePath)
+        String content = Files.readString(testFilePath)
+        new JsonSlurper().parseText(content) as Map
     }
 }
