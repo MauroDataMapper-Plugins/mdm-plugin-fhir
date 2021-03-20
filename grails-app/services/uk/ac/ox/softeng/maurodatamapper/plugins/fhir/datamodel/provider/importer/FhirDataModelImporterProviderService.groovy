@@ -20,7 +20,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importe
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
@@ -63,36 +62,30 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         if (!params.modelName) throw new ApiBadRequestException('FHIR02', 'Cannot import a single datamodel without the datamodel name')
         log.debug('Import DataModel')
-        importDataModel(user, params.modelName)
+        importDataModel(user, params.fhirVersion, params.modelName)
     }
 
     @Override
     List<DataModel> importModels(User user, FhirDataModelImporterProviderServiceParameters params) {
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
-        log.debug('Import DataModels')
+        log.debug('Import DataModels version {}', params.fhirVersion ?: 'Current')
         // Just get the first entry as this will tell us how many there are
-        Map definition = fhirServerClient.getStructureDefinition(1)
+        Map<String, Object> countResponse = fhirServerClient.getVersionedStructureDefinitionCount(params.fhirVersion)
 
         // Now get the full list
-        try {
-            if (definition.total > 1) {
-                definition = fhirServerClient.getStructureDefinition(definition.total as int)
-            }
-        } catch (Exception ex) {
-            throw new ApiInternalException('FHIR03', 'Could not import Fhir models', ex)
-        }
+        Map<String, Object> definitions = fhirServerClient.getVersionedStructureDefinition(params.fhirVersion, countResponse.total as int)
 
         // Collect all the entries as datamodels
-        definition.entry.collect { Map entry ->
-            importDataModel(user, entry.resource.id)
+        definitions.entry.collect {Map entry ->
+            importDataModel(user, params.fhirVersion, entry.resource.id)
         }
     }
 
-    private DataModel importDataModel(User currentUser, String dataModelName) {
-        log.debug('Importing DataModel {} from FHIR', dataModelName)
+    private DataModel importDataModel(User currentUser, String version, String dataModelName) {
+        log.debug('Importing DataModel {} from FHIR version {}', dataModelName, version ?: 'Current')
 
         // Load the map for that datamodel name
-        Map<String, Object> data = fhirServerClient.getStructureDefinitionEntry(dataModelName)
+        Map<String, Object> data = fhirServerClient.getVersionedStructureDefinitionEntry(version, dataModelName)
 
         //dataModel initialisation
         DataModel dataModel = new DataModel(label: dataModelName, description: data.description)
@@ -116,29 +109,29 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         List<String> datasetIds = datasets.collect {it.id} as List<String>
 
         Map<String, List<String>> dataItemMap = datasetIds.collectEntries {id ->
-            [id, id.tokenize('.').toList()]
+            [id, id.tokenize('.')]
         }
 
         // find all dcs
         List<String> dataClassKeys = dataItemMap
             .findAll {key, value ->
                 value.last() == 'id'
-            }.collect { key, value ->
-            value.findAll { it != 'id' }.join('.')
+            }.collect {key, value ->
+            value.findAll {it != 'id'}.join('.')
         }
 
         //Iterate through DCs and map and add to parent DC
-        dataClassKeys.each { dataClassKey ->
-            Map dataset = datasets.find { dataset -> dataset.id == dataClassKey }
+        dataClassKeys.each {dataClassKey ->
+            Map dataset = datasets.find {dataset -> dataset.id == dataClassKey}
             DataClass parentDataClass = findParentDataClass(dataClassKey, dataModel)
             processDataClass(dataset, parentDataClass, dataModel)
         }
 
         //Iterate Map for elements
-        dataItemMap.findAll { key, value ->
+        dataItemMap.findAll {key, value ->
             !(key in dataClassKeys)
-        }.each { key, value ->
-            Map dataset = datasets.find { dataset -> dataset.id == key }
+        }.each {key, value ->
+            Map dataset = datasets.find {dataset -> dataset.id == key}
             DataClass parentDataClass = findParentDataClass(key, dataModel)
             processDataElement(dataset, parentDataClass)
             //DataClass referenceDc = dataClasses.find{it.label = value.last()}
@@ -157,7 +150,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         keySections.removeLast()
         if (!keySections) return null
         String parentDataClass = keySections.join('.')
-        dataModel.dataClasses.find { dataClass ->
+        dataModel.dataClasses.find {dataClass ->
             parentDataClass == dataClass.label
             dataClass
         }
@@ -188,16 +181,16 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
     private void processMetadata(dataset, dataItem) {
         List<String> nonMetadata = ['id', 'definition', 'description', 'min', 'max', 'snapshot', 'differential']
-        dataset.each { key, value ->
+        dataset.each {key, value ->
             if (!(key in nonMetadata)) {
-                if (!(value.getClass() == String || value.getClass() == Integer || value.getClass() == Boolean)) {
+                if (!(value instanceof String || value instanceof Integer || value instanceof Boolean)) {
                     processNestedMetadata(key, value, dataItem)
                 } else {
-                    dataItem.addToMetadata(new Metadata(
+                    dataItem.addToMetadata(
                         namespace: namespace,
                         key: key,
                         value: value.toString()
-                    ))
+                    )
                 }
             }
         }
@@ -205,10 +198,10 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
     private void processNestedMetadata(key, dataCollection, dataItem) {
         try {
-            if (dataCollection.getClass() == ArrayList) {
+            if (dataCollection instanceof List) {
                 processListedMetadata(key, dataCollection, dataItem)
             }
-            if (dataCollection.getClass() == org.apache.groovy.json.internal.LazyMap) {
+            if (dataCollection instanceof Map) {
                 processMappedMetadata(key, dataCollection, dataItem)
             }
         } catch (Exception ex) {
@@ -216,45 +209,45 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         }
     }
 
-    private void processListedMetadata(key, ArrayList list, dataItem) {
+    private void processListedMetadata(key, List list, dataItem) {
         if (list.size() > 1) {
-            list.eachWithIndex { item, index ->
-                if (item.getClass() == String || item.getClass() == Integer || item.getClass() == Boolean) {
-                    dataItem.addToMetadata(new Metadata(
+            list.eachWithIndex {item, index ->
+                if (item instanceof String || item instanceof Integer || item instanceof Boolean) {
+                    dataItem.addToMetadata(
                         namespace: namespace,
-                        key: key + '[' + index.toString() + ']',
+                        key: "$key[${index}]",
                         value: item.toString()
-                    ))
-                } else if (item.getClass() == org.apache.groovy.json.internal.LazyMap) {
-                    processMappedMetadata(key + '[' + index.toString() + ']', item, dataItem)
+                    )
+                } else if (item instanceof Map) {
+                    processMappedMetadata("$key[${index}]", item, dataItem)
                 }
             }
         } else {
-            list.each { item ->
-                if (item.getClass() == String || item.getClass() == Integer || item.getClass() == Boolean) {
-                    dataItem.addToMetadata(new Metadata(
+            list.each {item ->
+                if (item instanceof String || item instanceof Integer || item instanceof Boolean) {
+                    dataItem.addToMetadata(
                         namespace: namespace,
                         key: key,
                         value: item.toString()
-                    ))
-                } else if (item.getClass() == org.apache.groovy.json.internal.LazyMap) {
+                    )
+                } else if (item instanceof Map) {
                     processMappedMetadata(key, item, dataItem)
                 }
             }
         }
     }
 
-    private void processMappedMetadata(String key, org.apache.groovy.json.internal.LazyMap map, dataItem) {
-        map.each { mapKey, mapVal ->
-            if (mapVal.getClass() == String || mapVal.getClass() == Integer || mapVal.getClass() == Boolean) {
-                dataItem.addToMetadata(new Metadata(
+    private void processMappedMetadata(String key, Map map, dataItem) {
+        map.each {mapKey, mapVal ->
+            if (mapVal instanceof String || mapVal instanceof Integer || mapVal instanceof Boolean) {
+                dataItem.addToMetadata(
                     namespace: namespace,
-                    key: key + '.' + mapKey,
+                    key: "${key}.${mapKey}",
                     value: mapVal.toString()
-                ))
+                )
             }
-            if (mapVal.getClass() == ArrayList) {
-                processListedMetadata(key + '.' + mapKey, mapVal, dataItem)
+            if (mapVal instanceof List) {
+                processListedMetadata("${key}.${mapKey}", mapVal, dataItem)
             }
         }
     }
@@ -269,5 +262,4 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         }
         null
     }
-
 }
