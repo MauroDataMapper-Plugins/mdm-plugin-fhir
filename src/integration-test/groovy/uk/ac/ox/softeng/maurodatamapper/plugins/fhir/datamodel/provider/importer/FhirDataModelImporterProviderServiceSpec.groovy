@@ -99,9 +99,11 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         ]
         dataClass.dataElements.size() == 32
         dataClass.dataElements.collect {it.label} == [
-            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', 'identifier', 'definition', 'basedOn',
-            'replaces', 'requisition', 'status', 'intent', 'priority', 'doNotPerform', 'category', 'code', 'subject', 'context', 'authoredOn',
-            'requester', 'performerType', 'performer', 'reasonCode', 'reasonReference', 'supportingInfo', 'specimen', 'bodySite', 'note',
+            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension',/* 'identifier',*/ 'definition',
+            'basedOn',
+            'replaces', /*'requisition',*/ 'status', 'intent', 'priority', 'doNotPerform', /*'category', 'code', */ 'subject', 'context',
+            'authoredOn',
+            /*'requester', */'performerType', 'performer', /*'reasonCode', */'reasonReference', 'supportingInfo', 'specimen', /*'bodySite', 'note',*/
             'relevantHistory',
         ]
 
@@ -131,7 +133,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         subDataClass.dataElements.size() == 5
         subDataClass.dataElements.collect {it.label} == [
-            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+            'id', 'extension', 'coding', /*'coding:snomedCT',*/'text'
         ]
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
@@ -146,7 +148,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         subDataClass.dataElements.size() == 5
         subDataClass.dataElements.collect {it.label} == [
-            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+            'id', 'extension', 'coding',/* 'coding:snomedCT', */'text'
         ]
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
@@ -171,7 +173,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         subDataClass.dataElements.size() == 5
         subDataClass.dataElements.collect {it.label} == [
-            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+            'id', 'extension', 'coding', /*'coding:snomedCT', */'text'
         ]
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
@@ -186,7 +188,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         subDataClass.dataElements.size() == 5
         subDataClass.dataElements.collect {it.label} == [
-            'id', 'extension', 'coding', 'coding:snomedCT', 'text'
+            'id', 'extension', 'coding', /*'coding:snomedCT',*/ 'text'
         ]
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
@@ -238,9 +240,9 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         ]
         dataClass.dataElements.size() == 28
         dataClass.dataElements.collect {it.label} == [
-            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', 'identifier', 'basedOn', 'status',
-            'category', 'code', 'subject', 'context', 'issued', 'performer', 'valueQuantity', 'dataAbsentReason', 'interpretation', 'comment',
-            'bodySite', 'method', 'specimen', 'device', 'referenceRange', 'related', 'component',
+            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension',/* 'identifier', */'basedOn', 'status',
+            /*'category', 'code',*/ 'subject', 'context', 'issued', 'performer', 'valueQuantity', /*'dataAbsentReason',*/ 'interpretation', 'comment',
+            /*'bodySite', 'method',*/ 'specimen', 'device', /*'referenceRange', 'related', 'component',*/
         ]
 
         when:
