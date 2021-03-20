@@ -1,0 +1,49 @@
+{
+  "resourceType": "Bundle",
+  "id": "c43be50d-1fbc-42e1-bd97-660e54400fec",
+  "meta": {
+    "tag": [
+      {
+        "system": "http://hl7.org/fhir/v3/ObservationValue",
+        "code": "SUBSETTED",
+        "display": "Resource encoded in summary mode"
+      }
+    ]
+  },
+  "type": "searchset",
+  "total": 111,
+  "link": [
+    {
+      "relation": "self",
+      "url": "http://fhir.hl7.org.uk/STU3/StructureDefinition?_count=2&_format=json&_summary=text"
+    },
+    {
+      "relation": "next",
+      "url": "http://fhir.hl7.org.uk/STU3?_getpages=a88b80b9-1c12-406e-bd36-e614201f3b96&_getpagesoffset=2&_count=2&_format=json&_bundletype=searchset"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "http://fhir.hl7.org.uk/STU3/StructureDefinition/CareConnect-Condition-1",
+      "resource": {
+        "resourceType": "StructureDefinition",
+        "id": "CareConnect-Condition-1",
+        "status": "draft",
+        "kind": "resource",
+        "abstract": false,
+        "type": "Condition"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.hl7.org.uk/STU3/StructureDefinition/Extension-CareConnect-AdmissionMethod-1",
+      "resource": {
+        "resourceType": "StructureDefinition",
+        "id": "Extension-CareConnect-AdmissionMethod-1",
+        "status": "draft",
+        "kind": "complex-type",
+        "abstract": false,
+        "type": "Extension"
+      }
+    }
+  ]
+}
