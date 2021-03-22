@@ -1,0 +1,7 @@
+import uk.ac.ox.softeng.maurodatamapper.core.provider.exporter.ExportModel
+
+model {
+    ExportModel dataModel
+}
+
+json tmpl.structureDefinition(dataModel)

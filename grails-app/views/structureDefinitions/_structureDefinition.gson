@@ -1,0 +1,10 @@
+import uk.ac.ox.softeng.maurodatamapper.core.provider.exporter.ExportModel
+
+model {
+    ExportModel dataModel
+}
+
+json {
+    id dataModel.id
+    //more templates in here
+}
