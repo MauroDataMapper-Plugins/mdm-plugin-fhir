@@ -34,9 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired
 @Slf4j
 class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters> {
 
-    @Autowired
-    FhirServerClient fhirServerClient
-
     @Override
     String getDisplayName() {
         'FHIR Server DataModel Importer'
@@ -62,13 +59,15 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         if (!params.modelName) throw new ApiBadRequestException('FHIR02', 'Cannot import a single datamodel without the datamodel name')
         log.debug('Import DataModel')
-        importDataModel(user, params.fhirVersion, params.modelName)
+        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost)
+        importDataModel(fhirServerClient, user, params.fhirVersion, params.modelName)
     }
 
     @Override
     List<DataModel> importModels(User user, FhirDataModelImporterProviderServiceParameters params) {
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         log.debug('Import DataModels version {}', params.fhirVersion ?: 'Current')
+        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost)
         // Just get the first entry as this will tell us how many there are
         Map<String, Object> countResponse = fhirServerClient.getVersionedStructureDefinitionCount(params.fhirVersion)
 
@@ -77,11 +76,11 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         // Collect all the entries as datamodels
         definitions.entry.collect {Map entry ->
-            importDataModel(user, params.fhirVersion, entry.resource.id)
+            importDataModel(fhirServerClient, user, params.fhirVersion, entry.resource.id)
         }
     }
 
-    private DataModel importDataModel(User currentUser, String version, String dataModelName) {
+    private DataModel importDataModel(FhirServerClient fhirServerClient, User currentUser, String version, String dataModelName) {
         log.debug('Importing DataModel {} from FHIR version {}', dataModelName, version ?: 'Current')
 
         // Load the map for that datamodel name

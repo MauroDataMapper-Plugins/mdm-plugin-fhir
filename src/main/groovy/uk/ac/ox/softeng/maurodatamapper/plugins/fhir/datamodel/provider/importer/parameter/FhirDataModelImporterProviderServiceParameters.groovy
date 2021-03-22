@@ -24,14 +24,26 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.parameter.Da
 class FhirDataModelImporterProviderServiceParameters extends DataModelImporterProviderServiceParameters {
 
     @ImportParameterConfig(
-            optional = true,
-            displayName = 'FHIR Publication Version',
-            description = ['The UK FHIR version to import. ',
-                    'See https://fhir.hl7.org.uk/StructureDefinition for all versions',
-                    '(e.g. STU3 or DSTU2).',
-                    'If not provided then the "current" published version will be used.'],
+            displayName = 'FHIR Server Host',
+            description = ['The FHIR host to import from. (e.g. https://fhir.hl7.org.uk)',
+            'URL for importing will be {fhirHost}/{version}/StructureDefinition/{structureDefinitionName}?',
+            'If no version parameter is supplied then URL will be {fhirHost}/StructureDefinition/{structureDefinitionName}?'
+            ],
             descriptionJoinDelimiter = ' ',
             order = 0,
+            group = @ImportGroupConfig(
+                    name = 'FHIR Settings',
+                    order = -1
+            ))
+    String fhirHost
+
+    @ImportParameterConfig(
+            optional = true,
+            displayName = 'FHIR Publication Version',
+            description = ['The UK FHIR version to import. (e.g. STU3).',
+                    'If not provided then the "current" published version will be used.'],
+            descriptionJoinDelimiter = ' ',
+            order = 1,
             group = @ImportGroupConfig(
                     name = 'FHIR Settings',
                     order = -1
@@ -42,10 +54,9 @@ class FhirDataModelImporterProviderServiceParameters extends DataModelImporterPr
             optional = true,
             displayName = 'Structure Definition name',
             description = ['Name of the individual Structure Definition Resource to import.',
-                    'See https://fhir.hl7.org.uk/StructureDefinition for all available models.',
                     'If this is left blank then all Structure Definitions will be imported for the defined version.'],
             descriptionJoinDelimiter = ' ',
-            order = 1,
+            order = 2,
             group = @ImportGroupConfig(
                     name = 'FHIR Settings',
                     order = -1

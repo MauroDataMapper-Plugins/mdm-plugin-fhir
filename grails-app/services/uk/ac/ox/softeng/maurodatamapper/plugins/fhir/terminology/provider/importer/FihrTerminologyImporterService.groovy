@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class FihrTerminologyImporterService extends FhirCodeSystemTerminologyService {
 
-    @Autowired
     FhirServerClient serverClient
 
     @Override
