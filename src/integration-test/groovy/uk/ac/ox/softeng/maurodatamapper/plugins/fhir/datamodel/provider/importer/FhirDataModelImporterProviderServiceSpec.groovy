@@ -90,20 +90,21 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         dataClass
         dataClass.label == 'ProcedureRequest'
-        dataClass.minMultiplicity == null
-        dataClass.maxMultiplicity == null
+        dataClass.minMultiplicity == 0
+        dataClass.maxMultiplicity == -1
         dataClass.metadata.size() == 36
         dataClass.dataClasses.size() == 8
-        dataClass.dataClasses.collect {it.label} == [
+        dataClass.dataClasses.collect { it.label } == [
             'identifier', 'requisition', 'category', 'code', 'requester', 'reasonCode', 'bodySite', 'note'
         ]
-        dataClass.dataElements.size() == 32
-        dataClass.dataElements.collect {it.label} == [
-            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension',/* 'identifier',*/ 'definition',
+        dataClass.dataElements.size() == 26
+        dataClass.dataElements.collect { it.label } == [
+            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', /* 'identifier',*/ 'definition',
             'basedOn',
             'replaces', /*'requisition',*/ 'status', 'intent', 'priority', 'doNotPerform', /*'category', 'code', */ 'subject', 'context',
-            'authoredOn',
-            /*'requester', */'performerType', 'performer', /*'reasonCode', */'reasonReference', 'supportingInfo', 'specimen', /*'bodySite', 'note',*/
+            'occurrence[x]', 'asNeeded[x]', 'authoredOn',
+            /*'requester', */ 'performerType', 'performer', /*'reasonCode', */ 'reasonReference', 'supportingInfo', 'specimen', /*'bodySite',
+            'note',*/
             'relevantHistory',
         ]
 
@@ -131,7 +132,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         subDataClass = dataClass.dataClasses.find {it.label == 'category'}
 
         then:
-        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.size() == 4
         subDataClass.dataElements.collect {it.label} == [
             'id', 'extension', 'coding', /*'coding:snomedCT',*/'text'
         ]
@@ -146,7 +147,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         subDataClass = dataClass.dataClasses.find {it.label == 'code'}
 
         then:
-        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.size() == 4
         subDataClass.dataElements.collect {it.label} == [
             'id', 'extension', 'coding',/* 'coding:snomedCT', */'text'
         ]
@@ -171,7 +172,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         subDataClass = dataClass.dataClasses.find {it.label == 'reasonCode'}
 
         then:
-        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.size() == 4
         subDataClass.dataElements.collect {it.label} == [
             'id', 'extension', 'coding', /*'coding:snomedCT', */'text'
         ]
@@ -186,7 +187,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         subDataClass = dataClass.dataClasses.find {it.label == 'bodySite'}
 
         then:
-        subDataClass.dataElements.size() == 5
+        subDataClass.dataElements.size() == 4
         subDataClass.dataElements.collect {it.label} == [
             'id', 'extension', 'coding', /*'coding:snomedCT',*/ 'text'
         ]

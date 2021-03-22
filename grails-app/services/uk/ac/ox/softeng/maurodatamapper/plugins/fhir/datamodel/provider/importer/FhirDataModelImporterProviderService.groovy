@@ -150,14 +150,15 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         keySections.removeLast()
         if (!keySections) return null
         String parentDataClass = keySections.join('.')
-        dataModel.dataClasses.find {dataClass ->
-            parentDataClass == dataClass.label
-            dataClass
+        dataModel.dataClasses.find { dataClass ->
+            if (parentDataClass == dataClass.path) {
+                dataClass
+            }
         }
     }
 
     private void processDataClass(Map dataset, DataClass parentDataClass, DataModel dataModel) {
-        DataClass dataClass = new DataClass(label: dataset.id, description: dataset.definition)
+        DataClass dataClass = new DataClass(label: dataset.id.tokenize('.').last(), path: dataset.id, description: dataset.definition)
         dataClass.minMultiplicity = parseInt(dataset.min)
         dataClass.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
         log.debug('Created dataClass {}', dataClass.label)
@@ -170,7 +171,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     }
 
     private void processDataElement(Map dataset, DataClass parentDataClass) {
-        DataElement dataElement = new DataElement(label: dataset.id, description: dataset.definition)
+        DataElement dataElement = new DataElement(label: dataset.id.tokenize('.').last(), path: dataset.id, description: dataset.definition)
         dataElement.minMultiplicity = parseInt(dataset.min)
         dataElement.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
         log.debug('Created dataElement {}', dataElement.label)
