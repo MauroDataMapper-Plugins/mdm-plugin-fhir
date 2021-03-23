@@ -1,7 +1,9 @@
 import uk.ac.ox.softeng.maurodatamapper.core.provider.exporter.ExportModel
 
 model {
-    ExportModel dataModel
+    DataModel dataModel
 }
 
-json tmpl.structureDefinition(dataModel)
+json {
+    hello "world"
+}

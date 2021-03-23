@@ -1,21 +1,23 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
-import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter.FhirDataModelJsonExporterService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 import uk.ac.ox.softeng.maurodatamapper.test.json.JsonComparer
-import uk.ac.ox.softeng.maurodatamapper.test.unit.security.TestUser
 
+import com.google.common.base.CaseFormat
+import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
+import org.junit.Assert
 import spock.lang.Shared
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -34,25 +36,61 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
     void setupServerClient() {
         resourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'structure_definitions').toAbsolutePath()
+        ersatz = new ErsatzServer()
     }
 
-    User getAdmin() {
-        new TestUser(emailAddress: StandardEmailAddress.ADMIN,
-                     firstName: 'Admin',
-                     lastName: 'User',
-                     organisation: 'Oxford BRC Informatics',
-                     jobTitle: 'God',
-                     id: UUID.randomUUID())
+    @Override
+    String getResourcePath() {
+        ''
+    }
+
+    @Shared
+    ErsatzServer ersatz
+
+    void cleanup() {
+        ersatz.clearExpectations()
+    }
+
+    void cleanupSpec() {
+        ersatz.stop()
     }
 
     def "CC01: verify exported DataModel JSON content - CareConnect-ProcedureRequest-1"() {
         //import FHIR Json file
         given:
         String entryId = 'CareConnect-ProcedureRequest-1'
+        String version = 'STU3'
+        ersatz.expectations {
+            GET("/$version/StructureDefinition/$entryId") {
+                query('_format', 'json')
+                called(1)
+                responder {
+                    contentType('application/json')
+                    code(200)
+                    body(loadJsonString("${entryId}.json"))
+                }
+            }
+            GET("/StructureDefinition/$entryId") {
+                query('_format', 'json')
+                called(0)
+            }
+            GET("/StructureDefinition") {
+                query('_format', 'json')
+                query('_summary', 'text')
+                called(0)
+            }
+            GET("/StructureDefinition") {
+                query('_format', 'json')
+                query('_summary', 'count')
+                called(0)
+            }
+        }
         def parameters = new FhirDataModelImporterProviderServiceParameters(
-            fhirVersion: 'STU3',
+            fhirHost: ersatz.httpUrl,
+            fhirVersion: version,
             modelName: entryId
         )
+
         //dataModel = turn Json into dataModel
         when:
         DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
@@ -62,14 +100,31 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
 
         //exportJSON = export dataModel into our JSON
         when:
-        def exportedJson = (fhirDataModelJsonExporterService.exportDataModel(admin, dataModel))
+        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelJsonExporterService.exportDataModel(admin, dataModel))
+        String exportedJson = new String(exportedJsonBytes.toByteArray())
+
         then:
         exportedJson
+        validateExportedModel(entryId, exportedJson)
     }
 
-    @Override
-    String getResourcePath() {
-        ''
+    String loadJsonString(String filename) {
+        Path testFilePath = resourcesPath.resolve("${filename}").toAbsolutePath()
+        assert Files.exists(testFilePath)
+        Files.readString(testFilePath)
+    }
+
+    void validateExportedModel(String entryId, String exportedModel) {
+        assert exportedModel, 'There must be an exported model string'
+
+        Path expectedPath = resourcesPath.resolve("${CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, entryId)}._exported.json")
+        if (!Files.exists(expectedPath)) {
+            Files.write(expectedPath, exportedModel.bytes)
+            Assert.fail("Expected export file ${expectedPath} does not exist")
+        }
+
+        String expectedJson = replaceContentWithMatchers(Files.readString(expectedPath))
+        verifyJson(expectedJson, exportedModel)
     }
 }
 

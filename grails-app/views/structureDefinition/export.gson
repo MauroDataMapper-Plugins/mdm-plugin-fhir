@@ -1,10 +1,7 @@
 import uk.ac.ox.softeng.maurodatamapper.core.provider.exporter.ExportModel
 
 model {
-    ExportModel dataModel
+    DataModel dataModel
 }
 
-json {
-    id dataModel.id
-    //more templates in here
-}
+json tmpl.structureDefinition(dataModel)
