@@ -20,12 +20,9 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importe
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import com.stehno.ersatz.ErsatzServer
-import com.stehno.ersatz.cfg.ContentType
-import com.stehno.ersatz.encdec.Encoders
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
@@ -267,8 +264,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         dataModel
         dataModel.label == entryId
-        //TODO renable
-//        dataModel.dataClasses.size() == 25
+        dataModel.dataClasses.size() == 23
         dataModel.metadata.size() == 14
         dataModel.childDataClasses.size() == 1
 
@@ -359,18 +355,18 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         codeComponentDataClass.dataClasses.any { it.label == 'coding:loinc' }
 
         when:
-        DataClass valueQuantityComponentDataClass = codeComponentDataClass.dataClasses.find { it.label == 'valueQuantity' }
+        DataClass valueQuantityComponentDataClass = componentDataClass.dataClasses.find { it.label == 'valueQuantity' }
 
         then:
         valueQuantityComponentDataClass
         !valueQuantityComponentDataClass.dataClasses
-        valueQuantityComponentDataClass.dataElements.size() == 5
+        valueQuantityComponentDataClass.dataElements.size() == 7
         valueQuantityComponentDataClass.dataElements.collect { it.label } == [
                 'id', 'extension', 'value', 'comparator', 'unit', 'system', 'code'
         ]
 
         when:
-        DataClass dataAbsentComponentDataClass = codeComponentDataClass.dataClasses.find { it.label == 'dataAbsentReason' }
+        DataClass dataAbsentComponentDataClass = componentDataClass.dataClasses.find { it.label == 'dataAbsentReason' }
 
         then:
         dataAbsentComponentDataClass
