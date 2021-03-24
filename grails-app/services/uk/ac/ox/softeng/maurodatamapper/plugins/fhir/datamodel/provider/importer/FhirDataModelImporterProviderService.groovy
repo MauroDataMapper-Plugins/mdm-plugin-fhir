@@ -30,9 +30,12 @@ import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 
 @Slf4j
 class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters> {
+
+    ApplicationContext applicationContext
 
     @Override
     String getDisplayName() {
@@ -59,7 +62,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         if (!params.modelName) throw new ApiBadRequestException('FHIR02', 'Cannot import a single datamodel without the datamodel name')
         log.debug('Import DataModel')
-        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost)
+        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, applicationContext)
         importDataModel(fhirServerClient, user, params.fhirVersion, params.modelName)
     }
 
@@ -67,7 +70,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     List<DataModel> importModels(User user, FhirDataModelImporterProviderServiceParameters params) {
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         log.debug('Import DataModels version {}', params.fhirVersion ?: 'Current')
-        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost)
+        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, applicationContext)
         // Just get the first entry as this will tell us how many there are
         Map<String, Object> countResponse = fhirServerClient.getVersionedStructureDefinitionCount(params.fhirVersion)
 

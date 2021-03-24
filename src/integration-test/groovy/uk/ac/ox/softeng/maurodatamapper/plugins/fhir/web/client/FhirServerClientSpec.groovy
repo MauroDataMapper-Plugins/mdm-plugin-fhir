@@ -21,8 +21,11 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import grails.testing.mixin.integration.Integration
+import grails.testing.spock.OnceBefore
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
+import spock.lang.Shared
 
 /**
  * @since 05/03/2021
@@ -31,8 +34,16 @@ import org.springframework.beans.factory.annotation.Autowired
 @Integration
 class FhirServerClientSpec extends BaseIntegrationSpec {
 
-    @Autowired
+    @Shared
     FhirServerClient fhirServerClient
+
+    @Autowired
+    ApplicationContext applicationContext
+
+    @OnceBefore
+    def setupClient(){
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+    }
 
     @Override
     void setupDomainData() {
