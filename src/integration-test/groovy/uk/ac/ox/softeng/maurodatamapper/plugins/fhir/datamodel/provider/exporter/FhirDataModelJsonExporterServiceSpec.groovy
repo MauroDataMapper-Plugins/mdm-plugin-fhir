@@ -1,4 +1,4 @@
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter.FhirDataModelJsonExporterService
@@ -117,7 +117,7 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
     void validateExportedModel(String entryId, String exportedModel) {
         assert exportedModel, 'There must be an exported model string'
 
-        Path expectedPath = resourcesPath.resolve("${CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, entryId)}._exported.json")
+        Path expectedPath = resourcesPath.resolve("${CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, entryId)}_exported.json")
         if (!Files.exists(expectedPath)) {
             Files.write(expectedPath, exportedModel.bytes)
             Assert.fail("Expected export file ${expectedPath} does not exist")

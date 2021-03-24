@@ -1,7 +1,7 @@
-import uk.ac.ox.softeng.maurodatamapper.core.provider.exporter.ExportModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 
 model {
     DataModel dataModel
 }
-
+log.debug("hello : ${binding.variables}")
 json tmpl.structureDefinition(dataModel)

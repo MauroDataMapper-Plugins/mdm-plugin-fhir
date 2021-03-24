@@ -72,7 +72,7 @@ class FhirDataModelJsonExporterService extends DataModelExporterProviderService 
             throw new ApiInternalException('TBE02', "Could not find template for format ${format} at path ${exportViewPath}")
         }
 
-        def writable = template.make(DataModel: dataModel)
+        def writable = template.make(dataModel: dataModel)
         def sw = new StringWriter()
         writable.writeTo(sw)
         ByteArrayOutputStream os = new ByteArrayOutputStream()
