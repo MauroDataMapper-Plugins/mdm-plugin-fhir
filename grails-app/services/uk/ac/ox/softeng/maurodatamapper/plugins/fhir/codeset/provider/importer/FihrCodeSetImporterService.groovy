@@ -5,16 +5,18 @@ import org.apache.lucene.util.BytesRef
 import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
+import uk.ac.ox.softeng.maurodatamapper.core.authority.Authority
+import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 class FihrCodeSetImporterService extends FhirCodeSetService {
 
+    public static List<String> NON_METADATA_KEYS = ['concept', "codeSystem"]
     @Autowired
     FHIRServerClient serverClient
 
@@ -46,19 +48,34 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
             terminologies.each { terminology ->
                 terminology.terms.map { term ->
                     Term codeSetTerm = new Term()
-                    codeSetTerm.label = term.label
+               //     codeSetTerm.label = term.label
                     codeSetTerm.code = term.code
-                    codeSetTerm.definition = term.definition
-                    codeSetTerm.url = term.url
+               //     codeSetTerm.definition = term.definition
+               //     codeSetTerm.url = term.url
                     codeSet.addToTerms(term)
                 }
             }
-
         }
-
-        codeSet.label = codeSetMap.contained.getAt(0).name
-        codeSet.addToMetadata(codeSetMap)
-
+        def authority = new Authority()
+        authority.label = codeSetMap.name
+        authority.createdBy = "test@test.com"
+        authority.url = codeSetMap.extension.first().url.toString()
+        authority.label = codeSetMap.name
+        codeSet.label = codeSetMap.name
+        codeSet.authority = authority
+        codeSet.createdBy = "test@test.com"
+        codeSet.label = codeSetMap.name
+        processMetadata(codeSetMap, codeSet)
         codeSet
     }
+
+    private void  processMetadata(Map<String, Object> codeSetMap, CatalogueItem catalogueItem ) {
+        codeSetMap.each { key, value ->
+            if (!(key in NON_METADATA_KEYS)) {
+          //      String extractedValue = value invalue.toString()
+                catalogueItem.addToMetadata(namespace: namespace, key: key, value: value.toString(), createdBy: "test@test.com" )
+            }
+        }
+    }
+
 }

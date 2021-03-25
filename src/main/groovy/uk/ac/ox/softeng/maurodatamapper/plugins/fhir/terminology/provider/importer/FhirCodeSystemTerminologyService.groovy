@@ -30,10 +30,10 @@ abstract class FhirCodeSystemTerminologyService<T extends FhirTerminologyImporte
     @Autowired
     FihrTerminologyImporterService jsonImporter
 
-    abstract Terminology importTerminology(User currentUser)
+    abstract Terminology importTerminology(User currentUser, T params)
 
     Terminology importModel(User user, T params) {
-        jsonImporter.importTerminology(user)
+        jsonImporter.importTerminology(user, params)
     }
 
     List<Terminology> importModels(User user, T params) {
