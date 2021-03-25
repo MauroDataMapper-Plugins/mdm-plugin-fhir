@@ -10,7 +10,8 @@ json {
     //url
     if (export.finalised) version export.modelVersion
     name export.label
-    //status
+    title export.label
+    status export.finalised ? "active" : "draft"
     date OffsetDateTimeConverter.toString(export.lastUpdated)
     if (export.authority.label) publisher export.authority.label
     if (export.description) description export.description
