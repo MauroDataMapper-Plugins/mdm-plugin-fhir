@@ -33,6 +33,7 @@ import io.micronaut.http.exceptions.HttpException
 import io.micronaut.http.uri.UriBuilder
 import io.netty.channel.MultithreadEventLoopGroup
 import io.netty.util.concurrent.DefaultThreadFactory
+import io.reactivex.Flowable
 import org.springframework.context.ApplicationContext
 
 import java.util.concurrent.ThreadFactory
@@ -56,7 +57,7 @@ class FhirServerClient {
     private HttpClient client
 
     FhirServerClient(String hostUrl, ApplicationContext applicationContext) {
-        this(hostUrl,
+        this(hostUrl, null,
              applicationContext.getBean(HttpClientConfiguration),
              new DefaultThreadFactory(MultithreadEventLoopGroup),
              applicationContext.getBean(NettyClientSslBuilder),
@@ -64,7 +65,16 @@ class FhirServerClient {
         )
     }
 
-    FhirServerClient(String hostUrl,
+    FhirServerClient(String hostUrl, String versionPath, ApplicationContext applicationContext) {
+        this(hostUrl, versionPath,
+             applicationContext.getBean(HttpClientConfiguration),
+             new DefaultThreadFactory(MultithreadEventLoopGroup),
+             applicationContext.getBean(NettyClientSslBuilder),
+             applicationContext.getBean(MediaTypeCodecRegistry)
+        )
+    }
+
+    FhirServerClient(String hostUrl, String versionPath,
                      HttpClientConfiguration httpClientConfiguration,
                      ThreadFactory threadFactory,
                      NettyClientSslBuilder nettyClientSslBuilder,
@@ -72,7 +82,7 @@ class FhirServerClient {
 
         client = new DefaultHttpClient(LoadBalancer.fixed(hostUrl.toURL()),
                                        httpClientConfiguration,
-                                       null,
+                                       versionPath,
                                        threadFactory,
                                        nettyClientSslBuilder,
                                        mediaTypeCodecRegistry,
@@ -80,45 +90,23 @@ class FhirServerClient {
         log.debug('Client created to connect to {}', hostUrl)
     }
 
-
-    Map<String, Object> getVersionedStructureDefinition(String version, int count) {
-        if (!version) return getCurrentStructureDefinition(count)
-        retrieveMapFromClient('/{version}/StructureDefinition?_summary=text&_format=json&_count={count}',
-                              [version: version,
-                               count  : count])
-    }
-
-    Map<String, Object> getVersionedStructureDefinitionCount(String version) {
-        if (!version) return getCurrentStructureDefinitionCount()
-        retrieveMapFromClient('/{version}/StructureDefinition?_summary=count&_format=json', [version: version])
-    }
-
-    Map<String, Object> getVersionedStructureDefinitionEntry(String version, String entryId) {
-        if (!version) return getCurrentStructureDefinitionEntry(entryId)
-        retrieveMapFromClient('/{version}/StructureDefinition/{entryId}?_format=json',
-                              [version: version,
-                               entryId: entryId])
-    }
-
-    Map<String, Object> getCurrentStructureDefinition(int count) {
+    Map<String, Object> getStructureDefinitions(int count) {
         retrieveMapFromClient('/StructureDefinition?_summary=text&_format=json&_count={count}', [count: count])
     }
 
-    Map<String, Object> getCurrentStructureDefinitionCount() {
+    Map<String, Object> getStructureDefinitionCount() {
         retrieveMapFromClient('/StructureDefinition?_summary=count&_format=json', [:])
     }
 
-    Map<String, Object> getCurrentStructureDefinitionEntry(String entryId) {
+    Map<String, Object> getStructureDefinitionEntry(String entryId) {
         retrieveMapFromClient('/StructureDefinition/{entryId}?_format=json', [entryId: entryId])
     }
 
     private Map<String, Object> retrieveMapFromClient(String url, Map params) {
         try {
-            //            Flowable<Map> response = client.retrieve(HttpRequest.GET(UriBuilder.of
-            //            (url).expand(params)), Argument.of(Map, String, Object)) as Flowable<Map>
-            //            response.blockingFirst()
-            def response = client.toBlocking().exchange(HttpRequest.GET(UriBuilder.of(url).expand(params)), Argument.of(Map, String, Object))
-            response.body()
+            Flowable<Map> response = client.retrieve(HttpRequest.GET(UriBuilder.of
+            (url).expand(params)), Argument.of(Map, String, Object)) as Flowable<Map>
+            response.blockingFirst()
         }
         catch (HttpException ex) {
             throw new ApiInternalException('FHIRC01', "Could not load resource from endpoint [${url}]", ex)

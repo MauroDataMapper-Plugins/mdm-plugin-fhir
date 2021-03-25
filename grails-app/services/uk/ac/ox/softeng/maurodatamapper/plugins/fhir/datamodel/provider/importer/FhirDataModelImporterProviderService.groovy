@@ -35,6 +35,7 @@ import org.springframework.context.ApplicationContext
 @Slf4j
 class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters> {
 
+    @Autowired
     ApplicationContext applicationContext
 
     @Override
@@ -62,7 +63,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         if (!params.modelName) throw new ApiBadRequestException('FHIR02', 'Cannot import a single datamodel without the datamodel name')
         log.debug('Import DataModel')
-        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, applicationContext)
+        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, params.fhirVersion, applicationContext)
         importDataModel(fhirServerClient, user, params.fhirVersion, params.modelName)
     }
 
@@ -70,12 +71,12 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     List<DataModel> importModels(User user, FhirDataModelImporterProviderServiceParameters params) {
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         log.debug('Import DataModels version {}', params.fhirVersion ?: 'Current')
-        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, applicationContext)
+        FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, params.fhirVersion, applicationContext)
         // Just get the first entry as this will tell us how many there are
-        Map<String, Object> countResponse = fhirServerClient.getVersionedStructureDefinitionCount(params.fhirVersion)
+        Map<String, Object> countResponse = fhirServerClient.getStructureDefinitionCount()
 
         // Now get the full list
-        Map<String, Object> definitions = fhirServerClient.getVersionedStructureDefinition(params.fhirVersion, countResponse.total as int)
+        Map<String, Object> definitions = fhirServerClient.getStructureDefinitions(countResponse.total as int)
 
         // Collect all the entries as datamodels
         definitions.entry.collect {Map entry ->
@@ -87,7 +88,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         log.debug('Importing DataModel {} from FHIR version {}', dataModelName, version ?: 'Current')
 
         // Load the map for that datamodel name
-        Map<String, Object> data = fhirServerClient.getVersionedStructureDefinitionEntry(version, dataModelName)
+        Map<String, Object> data = fhirServerClient.getStructureDefinitionEntry(dataModelName)
 
         //dataModel initialisation
         DataModel dataModel = new DataModel(label: dataModelName, description: data.description)

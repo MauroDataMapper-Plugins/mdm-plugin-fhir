@@ -21,11 +21,9 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import grails.testing.mixin.integration.Integration
-import grails.testing.spock.OnceBefore
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import spock.lang.Shared
 
 /**
  * @since 05/03/2021
@@ -34,16 +32,10 @@ import spock.lang.Shared
 @Integration
 class FhirServerClientSpec extends BaseIntegrationSpec {
 
-    @Shared
     FhirServerClient fhirServerClient
 
     @Autowired
     ApplicationContext applicationContext
-
-    @OnceBefore
-    def setupClient(){
-        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
-    }
 
     @Override
     void setupDomainData() {
@@ -51,8 +43,11 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
 
     void 'STU3-01: Test the structure definition count endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+
         when:
-        def result = fhirServerClient.getVersionedStructureDefinitionCount('STU3')
+        def result = fhirServerClient.getStructureDefinitionCount()
 
         then:
         result instanceof Map
@@ -62,8 +57,11 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
     }
 
     void 'STU3-02: Test the structure definition summary endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+
         when:
-        def result = fhirServerClient.getVersionedStructureDefinition('STU3', 2)
+        def result = fhirServerClient.getStructureDefinitions(2)
 
         then:
         result instanceof Map
@@ -75,10 +73,11 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
     void 'STU3-03: Test the structure definition entry endpoint'() {
         given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
         String entryId = 'CareConnect-Condition-1'
 
         when:
-        def result = fhirServerClient.getVersionedStructureDefinitionEntry('STU3', entryId)
+        def result = fhirServerClient.getStructureDefinitionEntry(entryId)
 
         then:
         result instanceof Map
@@ -89,8 +88,11 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
     }
 
     void 'PUB-01: Test the structure definition count endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+
         when:
-        def result = fhirServerClient.getCurrentStructureDefinitionCount()
+        def result = fhirServerClient.getStructureDefinitionCount()
 
         then:
         result instanceof Map
@@ -100,8 +102,11 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
     }
 
     void 'PUB-02: Test the structure definition summary endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+
         when:
-        def result = fhirServerClient.getCurrentStructureDefinition(2)
+        def result = fhirServerClient.getStructureDefinitions(2)
 
         then:
         result instanceof Map
@@ -113,10 +118,11 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
     void 'PUB-03: Test the structure definition entry endpoint'() {
         given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
         String entryId = 'CareConnect-Condition-1'
 
         when:
-        def result = fhirServerClient.getCurrentStructureDefinitionEntry(entryId)
+        def result = fhirServerClient.getStructureDefinitionEntry(entryId)
 
         then:
         result instanceof Map
@@ -127,8 +133,11 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
     }
 
     void 'VER-01: Test the structure definition count endpoint with a blank version'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', '', applicationContext)
+
         when:
-        def result = fhirServerClient.getVersionedStructureDefinitionCount('')
+        def result = fhirServerClient.getStructureDefinitionCount()
 
         then:
         result instanceof Map
