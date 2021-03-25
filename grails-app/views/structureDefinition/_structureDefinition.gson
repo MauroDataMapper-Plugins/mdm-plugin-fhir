@@ -1,18 +1,25 @@
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 
 model {
     DataModel dataModel
 }
 
-log.debug("hello : ${binding.variables}")
+log.warn("${binding.variables}")
 
 json {
 
     Map<String,Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer')
     .collectEntries {md -> [md.key, md.value]}
-    if (fhirMetadata.any {it.key.startsWith('contact')}){
-        Map<String,Object> contacts = fhirMetadata.findAll {it.key.startsWith('contact')}
-        contact tmpl.'/contact/contact'(contacts)
+
+    if (fhirMetadata.any {it.key.startsWith('contact')}) {
+        Map<String, Object> contactInfo = fhirMetadata.findAll { it.key.startsWith('contact') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> contacts = contactInfo.collect { it.value } as List<Map>
+        contact tmpl.'/contact/contact'("contactMap", contacts)
     }
 
     id              dataModel.label
@@ -23,14 +30,23 @@ json {
     status          fhirMetadata.status
     date            fhirMetadata.date
     publisher       fhirMetadata.publisher
-    purpose         fhirMetadata.purpose
-    copyright       fhirMetadata.copyright
-    fhirVersion     fhirMetadata.fhirVersion
-    kind            fhirMetadata.kind
-// TODO make this namespace dynamic
+    purpose fhirMetadata.purpose
+    copyright fhirMetadata.copyright
+    fhirVersion fhirMetadata.fhirVersion
+    kind fhirMetadata.kind
+    // TODO make this namespace dynamic
 
-    call('abstract', dataModel.findMetadataByNamespaceAndKey('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer', 'abstract').value)
-    type            fhirMetadata.type
-    baseDefinition  fhirMetadata.baseDefinition
-    derivation      fhirMetadata.derivation
+    call('abstract',
+         dataModel.findMetadataByNamespaceAndKey('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer', 'abstract').value)
+    type fhirMetadata.type
+    baseDefinition fhirMetadata.baseDefinition
+    derivation fhirMetadata.derivation
+
+    log.warn(dataModel.dataClasses.first().toString())
+
+    //dataModel.dataClasses.each { dataClass ->
+
+    DataClass dataClass = dataModel.dataClasses.find { it.label == 'ProcedureRequest' } as DataClass
+    snapshot tmpl.'/snapshot/snapshot'(dataClass)
+
 }

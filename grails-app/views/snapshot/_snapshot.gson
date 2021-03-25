@@ -1,0 +1,67 @@
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+
+model {
+    DataClass dataClass
+}
+
+log.warn("${binding.variables}")
+log.warn('happy face')
+
+json.element {
+
+    id dataClass.label
+    definition dataClass.description
+    min dataClass.minMultiplicity
+    max dataClass.maxMultiplicity
+
+    Map<String, Object> dataClassMetadata = dataClass.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider' +
+                                                                              '.importer').collectEntries { md -> [md.key, md.value] }
+
+    path dataClassMetadata.path
+    // TODO resolve this to not have call as the key, a la abstract
+    call('short', dataClass.findMetadataByNamespaceAndKey('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer', 'short').value)
+    alias dataClassMetadata.alias
+    comment dataClassMetadata.comment
+
+    if (dataClassMetadata.any { it.key.startsWith('base') }) {
+        Map<String, Object> baseInfo = dataClassMetadata.findAll { it.key.startsWith('base') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> bases = baseInfo.collect { it.value } as List<Map>
+        base tmpl.'/snapshot/base'("baseMap", bases)
+    }
+
+    if (dataClassMetadata.any { it.key.startsWith('constraint') }) {
+        Map<String, Object> constraintInfo = dataClassMetadata.findAll { it.key.startsWith('constraint') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> constraints = constraintInfo.collect { it.value } as List<Map>
+        constraint tmpl.'/snapshot/constraint'("constraintMap", constraints)
+    }
+
+    if (dataClassMetadata.any { it.key.startsWith('mapping') }) {
+        Map<String, Object> mappingInfo = dataClassMetadata.findAll { it.key.startsWith('mapping') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> mappings = mappingInfo.collect { it.value } as List<Map>
+        mapping tmpl.'/snapshot/mapping'("mappingMap", mappings)
+    }
+
+    //    if(dataClass.dataClasses.size > 0) {
+    //        dataClass.dataClasses.each { subDataClass ->
+    //            snapshot tmpl.'/snapshot/snapshot'("dataClass", subDataClass)
+    //        }
+    //    }
+
+    //    if(dataClass.dataElements.size > 0) {
+    //        dataClass.dataElements.each { dataElement ->
+    //            snapshot tmpl.'/snapshot/snapshot'("dataClass", dataElement)
+    //        }
+    //    }
+}
