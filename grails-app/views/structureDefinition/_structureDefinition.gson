@@ -3,7 +3,34 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 model {
     DataModel dataModel
 }
+
 log.debug("hello : ${binding.variables}")
+
 json {
-    hello "world"
+
+    Map<String,Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer')
+    .collectEntries {md -> [md.key, md.value]}
+    if (fhirMetadata.any {it.key.startsWith('contact')}){
+        Map<String,Object> contacts = fhirMetadata.findAll {it.key.startsWith('contact')}
+        contact tmpl.'/contact/contact'(contacts)
+    }
+
+    id              dataModel.label
+    description     dataModel.description
+    resourceType    fhirMetadata.resourceType
+    url             fhirMetadata.url
+    version         fhirMetadata.version
+    status          fhirMetadata.status
+    date            fhirMetadata.date
+    publisher       fhirMetadata.publisher
+    purpose         fhirMetadata.purpose
+    copyright       fhirMetadata.copyright
+    fhirVersion     fhirMetadata.fhirVersion
+    kind            fhirMetadata.kind
+// TODO make this namespace dynamic
+
+    call('abstract', dataModel.findMetadataByNamespaceAndKey('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer', 'abstract').value)
+    type            fhirMetadata.type
+    baseDefinition  fhirMetadata.baseDefinition
+    derivation      fhirMetadata.derivation
 }

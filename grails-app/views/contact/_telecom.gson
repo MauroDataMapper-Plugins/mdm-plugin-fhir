@@ -1,0 +1,14 @@
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+
+model {
+    Map<String,Object> telecomMap
+}
+
+log.warn(binding.variables)
+
+json {
+
+    system telecomMap.find{it.key == 'contact.telecom.system'}.value
+    value  telecomMap.find{it.key == 'contact.telecom.value'}.value
+    use    telecomMap.find{it.key == 'contact.telecom.use'}.value
+}

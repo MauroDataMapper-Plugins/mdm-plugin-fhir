@@ -97,23 +97,6 @@ class FhirDataModelJsonExporterService extends DataModelExporterProviderService 
 //            json()
 //        }
 //    }
-//
-//    private void dataModelMetadata(dataModel) {
-//        dataModel.metadata.each {
-//            json {
-//                it.key it.value
-//            }
-//        }
-//        exportNonMetadata(dataModel)
-//    }
-//
-//    private void exportNonMetadata(dataItem) {
-//        json {
-//            id dataItem.id
-//        }
-//        json {
-//            description dataItem.description
-//        }
 //        if (dataItem.minMultiplicity) {
 //            json {
 //                min dataItem.minMultiplicity
@@ -137,8 +120,3 @@ class FhirDataModelJsonExporterService extends DataModelExporterProviderService 
 //    //    key value
 //    // note: do not think this will work for alias, constraint, mapping
 //    //}
-//
-//    //json.message {
-//    //    hello "world"
-//    //} -> {message:{ "hello":"world"}}
-//}
