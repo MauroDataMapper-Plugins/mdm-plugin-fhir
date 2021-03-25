@@ -46,7 +46,7 @@ class FhirTerminologyJsonExporterService extends TerminologyExporterProviderServ
 
     @Override
     String getDisplayName() {
-        'FHIR Code System (Terminology) JSON Exporter'
+        'FHIR CodeSystem (Terminology) JSON Exporter'
     }
 
     @Override
