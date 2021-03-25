@@ -1,0 +1,9 @@
+micronaut:
+    codec:
+        json:
+            additional-types:
+                - 'application/json+fhir;charset=utf-8'
+    http:
+        client:
+            max-content-length: 33554430
+            read-timeout: 30
