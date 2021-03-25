@@ -1,0 +1,10 @@
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+
+model {
+    Term term
+}
+
+json {
+    system term.terminology.label
+    concept tmpl.exportTermAsFhirConcept(term)
+}
