@@ -1,0 +1,25 @@
+import uk.ac.ox.softeng.maurodatamapper.core.rest.converter.json.OffsetDateTimeConverter
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+
+model {
+    Terminology export
+}
+json {
+    resourceType "CodeSystem"
+    id export.id
+    //url
+    if (export.finalised) version export.modelVersion
+    name export.label
+    //status
+    date OffsetDateTimeConverter.toString(export.lastUpdated)
+    if (export.authority.label) publisher export.authority.label
+    if (export.description) description export.description
+    //copyright
+    //caseSensitive
+    content "complete"
+
+    if (export.terms) {
+        concept tmpl.exportTermAsFhirConcept(export.terms)
+    }
+
+}
