@@ -85,38 +85,3 @@ class FhirDataModelJsonExporterService extends DataModelExporterProviderService 
         throw new ApiBadRequestException('JES01', "${getName()} cannot export multiple DataModels")
     }
 }
-
-//sketchings {
-//    Map exportModels() {
-//        DataModel dataModel
-//        dataModelMetadata(dataModel)
-//
-//        List<Map> dataClasslist
-//
-//        json.snapshot {
-//            json()
-//        }
-//    }
-//        if (dataItem.minMultiplicity) {
-//            json {
-//                min dataItem.minMultiplicity
-//            }
-//        }
-//        if (dataItem.maxMultiplicity) {
-//            json {
-//                //convert back to '*'?
-//                max dataItem.maxMultiplicity
-//            }
-//        }
-//    }
-//
-//    //actual functionality of exporter
-//
-//    //input dataModel
-//
-//
-//    //for each dataclass of datamodel:
-//    //json.snapshot, element {
-//    //    key value
-//    // note: do not think this will work for alias, constraint, mapping
-//    //}

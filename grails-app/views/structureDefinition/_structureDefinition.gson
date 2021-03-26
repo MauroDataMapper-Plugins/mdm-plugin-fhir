@@ -1,5 +1,5 @@
+import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 
 model {
     DataModel dataModel
@@ -34,19 +34,17 @@ json {
     copyright fhirMetadata.copyright
     fhirVersion fhirMetadata.fhirVersion
     kind fhirMetadata.kind
-    // TODO make this namespace dynamic
-
-    call('abstract',
-         dataModel.findMetadataByNamespaceAndKey('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer', 'abstract').value)
+    call('abstract', fhirMetadata['abstract'])
     type fhirMetadata.type
     baseDefinition fhirMetadata.baseDefinition
     derivation fhirMetadata.derivation
 
-    log.warn(dataModel.dataClasses.first().toString())
 
-    //dataModel.dataClasses.each { dataClass ->
-
-    DataClass dataClass = dataModel.dataClasses.find { it.label == 'ProcedureRequest' } as DataClass
-    snapshot tmpl.'/snapshot/snapshot'(dataClass)
+    snapshot {
+        List<ModelItem> elements = []
+        elements.addAll(dataModel.dataClasses)
+        elements.addAll(dataModel.getAllDataElements())
+        element tmpl.'/snapshot/element'('modelItem', elements)
+    }
 
 }

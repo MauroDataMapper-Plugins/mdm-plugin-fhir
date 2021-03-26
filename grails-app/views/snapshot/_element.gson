@@ -1,0 +1,69 @@
+import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.traits.domain.MultiplicityAware
+
+model {
+    ModelItem modelItem
+}
+
+log.warn("${binding.variables}")
+
+static String buildId(ModelItem modelItem) {
+    if (modelItem instanceof DataClass) {
+        DataClass dc = modelItem as DataClass
+        if (dc.parentDataClass) return "${buildId(dc.parentDataClass)}.${dc.label}"
+        return dc.label
+    }
+    if (modelItem instanceof DataElement) {
+        DataElement de = modelItem as DataElement
+        return "${buildId(de.dataClass)}.${de.label}"
+    }
+}
+
+json {
+
+    id buildId(modelItem)
+    definition modelItem.description
+    MultiplicityAware multiplicityItem = modelItem as MultiplicityAware
+    min multiplicityItem.minMultiplicity
+    max multiplicityItem.maxMultiplicity
+
+    Map<String, Object> modelItemMetadata = modelItem.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider' +
+                                                                              '.importer').collectEntries { md -> [md.key, md.value] }
+
+    path modelItemMetadata.path
+    call('short', modelItemMetadata['short'])
+    alias modelItemMetadata.alias
+    comment modelItemMetadata.comment
+
+    if (modelItemMetadata.any { it.key.startsWith('base') }) {
+        Map<String, Object> baseInfo = modelItemMetadata.findAll { it.key.startsWith('base') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> bases = baseInfo.collect { it.value } as List<Map>
+        base tmpl.'/snapshot/base'("baseMap", bases)
+    }
+
+    if (modelItemMetadata.any { it.key.startsWith('constraint') }) {
+        Map<String, Object> constraintInfo = modelItemMetadata.findAll { it.key.startsWith('constraint') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> constraints = constraintInfo.collect { it.value } as List<Map>
+        constraint tmpl.'/snapshot/constraint'("constraintMap", constraints)
+    }
+
+    if (modelItemMetadata.any { it.key.startsWith('mapping') }) {
+        Map<String, Object> mappingInfo = modelItemMetadata.findAll { it.key.startsWith('mapping') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> mappings = mappingInfo.collect { it.value } as List<Map>
+        mapping tmpl.'/snapshot/mapping'("mappingMap", mappings)
+    }
+}
