@@ -17,16 +17,19 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 
 import groovy.util.logging.Slf4j
 import io.micronaut.core.annotation.AnnotationMetadataResolver
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.DefaultHttpClient
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.HttpClientConfiguration
 import io.micronaut.http.client.LoadBalancer
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.http.client.ssl.NettyClientSslBuilder
 import io.micronaut.http.codec.MediaTypeCodecRegistry
 import io.micronaut.http.exceptions.HttpException
@@ -55,6 +58,8 @@ import java.util.concurrent.ThreadFactory
 class FhirServerClient {
 
     private HttpClient client
+    private String hostUrl
+    private String versionPath
 
     FhirServerClient(String hostUrl, ApplicationContext applicationContext) {
         this(hostUrl, null,
@@ -79,7 +84,8 @@ class FhirServerClient {
                      ThreadFactory threadFactory,
                      NettyClientSslBuilder nettyClientSslBuilder,
                      MediaTypeCodecRegistry mediaTypeCodecRegistry) {
-
+        this.hostUrl = hostUrl
+        this.versionPath = versionPath
         client = new DefaultHttpClient(LoadBalancer.fixed(hostUrl.toURL()),
                                        httpClientConfiguration,
                                        versionPath,
@@ -108,8 +114,33 @@ class FhirServerClient {
             (url).expand(params)), Argument.of(Map, String, Object)) as Flowable<Map>
             response.blockingFirst()
         }
-        catch (HttpException ex) {
-            throw new ApiInternalException('FHIRC01', "Could not load resource from endpoint [${url}]", ex)
+        catch (HttpClientResponseException responseException) {
+            String fullUrl = UriBuilder.of(hostUrl).path(versionPath).path(url).expand(params).toString()
+            if (responseException.status == HttpStatus.NOT_FOUND) {
+                throw new ApiBadRequestException('FHIRC01', "Requested endpoint could not be found ${fullUrl}")
+            }
+            Map responseBody = extractExceptionBody(responseException)
+            List issues = responseBody.issue
+            if (issues) {
+                if (issues.first().diagnostics == 'Failed to call access method') {
+                    throw new ApiBadRequestException('FHIRC01', "Requested endpoint could not be found ${fullUrl}")
+                }
+            }
+            throw new ApiInternalException('FHIRC02', "Could not load resource from endpoint [${fullUrl}].\n" +
+                                                      "Response body [${responseException.response.body()}]",
+                                           responseException)
+        } catch (HttpException ex) {
+            String fullUrl = UriBuilder.of(hostUrl).path(versionPath).path(url).expand(params).toString()
+            throw new ApiInternalException('FHIRC03', "Could not load resource from endpoint [${fullUrl}]", ex)
         }
+    }
+
+    private static Map extractExceptionBody(HttpClientResponseException responseException) {
+        try {
+            responseException.response.body() as Map
+        } catch (Exception ignored) {
+            [:]
+        }
+
     }
 }

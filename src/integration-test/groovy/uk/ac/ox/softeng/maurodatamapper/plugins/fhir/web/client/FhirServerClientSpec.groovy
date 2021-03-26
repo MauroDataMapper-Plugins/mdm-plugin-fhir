@@ -17,7 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client
 
-
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import grails.testing.mixin.integration.Integration
@@ -144,5 +144,18 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
         result.total == 51
         result.resourceType == 'Bundle'
         result.id
+    }
+
+    void 'GEN-01: Test the structure definition entry id for non-existent entry'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+        String entryId = 'non-existent-entry'
+
+        when:
+        fhirServerClient.getStructureDefinitionEntry(entryId)
+
+        then:
+        ApiBadRequestException ex = thrown(ApiBadRequestException)
+        ex.message == 'Requested endpoint could not be found https://fhir.hl7.org.uk/STU3/StructureDefinition/non-existent-entry?_format=json'
     }
 }
