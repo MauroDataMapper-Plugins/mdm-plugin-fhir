@@ -254,9 +254,9 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
             }
         }
         def parameters = new FhirDataModelImporterProviderServiceParameters(
-                fhirHost: ersatz.httpUrl,
-                fhirVersion: 'STU3',
-                modelName: entryId
+            fhirHost: ersatz.httpUrl,
+            fhirVersion: version,
+            modelName: entryId
         )
         when:
         DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
@@ -366,7 +366,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         ]
 
         when:
-        DataClass dataAbsentComponentDataClass = componentDataClass.dataClasses.find { it.label == 'dataAbsentReason' }
+        DataClass dataAbsentComponentDataClass = componentDataClass.dataClasses.find {it.label == 'dataAbsentReason'}
 
         then:
         dataAbsentComponentDataClass
@@ -374,12 +374,46 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         dataAbsentComponentDataClass.dataClasses.first().label == 'coding'
     }
 
+    def 'CC03: Test importing CareConnect-GPC-MedicationRequest-1'() {
+        // This datamodel has "orphaned" dataelements
+        given:
+        String entryId = 'CareConnect-GPC-MedicationRequest-1'
+        String version = 'STU3'
+        ersatz.expectations {
+            GET("/$version/StructureDefinition/$entryId") {
+                query('_format', 'json')
+                called(1)
+                responder {
+                    contentType('application/json')
+                    code(200)
+                    body(loadJsonString("${entryId}.json"))
+                }
+            }
+            GET("/StructureDefinition/$entryId") {
+                query('_format', 'json')
+                called(0)
+            }
+        }
+        def parameters = new FhirDataModelImporterProviderServiceParameters(
+            fhirHost: ersatz.httpUrl,
+            fhirVersion: version,
+            modelName: entryId
+        )
+
+        when:
+        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
+
+        then:
+        noExceptionThrown()
+        dataModel
+    }
+
     def 'Test importing current multiple datamodels'() {
         given:
         ersatz.expectations {
             GET("/StructureDefinition") {
                 query('_format', 'json')
-                query('_summary','text')
+                query('_summary', 'text')
                 called(1)
                 responder {
                     contentType('application/json')

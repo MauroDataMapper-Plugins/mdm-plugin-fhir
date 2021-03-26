@@ -62,7 +62,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     DataModel importModel(User user, FhirDataModelImporterProviderServiceParameters params) {
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
         if (!params.modelName) throw new ApiBadRequestException('FHIR02', 'Cannot import a single datamodel without the datamodel name')
-        log.debug('Import DataModel')
+        log.debug('Import DataModel {}', params.modelName)
         FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, params.fhirVersion, applicationContext)
         importDataModel(fhirServerClient, user, params.fhirVersion, params.modelName)
     }
@@ -70,6 +70,12 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     @Override
     List<DataModel> importModels(User user, FhirDataModelImporterProviderServiceParameters params) {
         if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
+
+        if (params.modelName) {
+            log.debug('Model name supplied, only importing 1 model')
+            return [importModel(user, params)]
+        }
+
         log.debug('Import DataModels version {}', params.fhirVersion ?: 'Current')
         FhirServerClient fhirServerClient = new FhirServerClient(params.fhirHost, params.fhirVersion, applicationContext)
         // Just get the first entry as this will tell us how many there are
@@ -90,6 +96,8 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getStructureDefinitionEntry(dataModelName)
 
+        //log.trace('JSON\n{}', new JsonBuilder(data).toPrettyString())
+
         //dataModel initialisation
         DataModel dataModel = new DataModel(label: dataModelName, description: data.description)
         processMetadata(data, dataModel)
@@ -102,8 +110,9 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
                 String accursedSliceName = dataset.sliceName
                 datasets.each {pathDataset ->
                     if (pathDataset.id.contains(accursedSliceName)) {
+                        pathDataset.oldId = pathDataset.id
                         pathDataset.id = pathDataset.path
-                        log.debug('changed ids' + pathDataset.id.toString())
+                        log.debug('changed id from {} to {}', pathDataset.oldId, pathDataset.id)
                     }
                 }
             }
@@ -122,6 +131,8 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
             }.collect {key, value ->
             value.findAll {it != 'id'}.join('.')
         }
+
+        log.debug('{} DataClasses found', dataClassKeys.size())
 
         //Iterate through DCs and map and add to parent DC
         dataClassKeys.each {dataClassKey ->
@@ -153,7 +164,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         keySections.removeLast()
         if (!keySections) return null
         String parentDataClass = keySections.join('.')
-        dataModel.dataClasses.find { dataClass ->
+        dataModel.dataClasses.find {dataClass ->
             if (parentDataClass == dataClass.path) {
                 dataClass
             }
@@ -174,6 +185,12 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     }
 
     private void processDataElement(Map dataset, DataClass parentDataClass) {
+        if (!parentDataClass) {
+            // There seem to some odd entries which have no parent, looking at the JSON they seem to be coded under a different ID as well,
+            // so seems safe to exclude
+            log.warn('Could not add {} as no parent dataclass exists', dataset.id)
+            return
+        }
         DataElement dataElement = new DataElement(label: dataset.id.tokenize('.').last(), path: dataset.id, description: dataset.definition)
         dataElement.minMultiplicity = parseInt(dataset.min)
         dataElement.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))

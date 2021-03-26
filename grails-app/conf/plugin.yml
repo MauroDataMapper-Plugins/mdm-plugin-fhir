@@ -6,4 +6,4 @@ micronaut:
     http:
         client:
             max-content-length: 33554430
-            read-timeout: 30
+            read-timeout: PT30S
