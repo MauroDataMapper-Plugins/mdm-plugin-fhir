@@ -12,7 +12,7 @@ abstract class FhirCodeSetService<T extends FhirCodeSetImporterProviderServicePa
     @Autowired
     FihrCodeSetImporterService jsonImporter
 
-    abstract CodeSet importCodeSet(User currentUser)
+    abstract CodeSet importCodeSet(User currentUser, T params)
 
     CodeSet importModel(User user, T params) {
         jsonImporter.importCodeSet(user)

@@ -8,6 +8,7 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.core.authority.Authority
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -29,11 +30,15 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
     }
 
     @Override
-    CodeSet importCodeSet(User currentUser) {
-        if (!currentUser) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
+    CodeSet importCodeSet(User currentUser, FhirCodeSetImporterProviderServiceParameters params) {
+        if (!currentUser) throw new ApiUnauthorizedException('FHIR02', 'User must be logged in to import model')
+        if (!params.category) throw new ApiUnauthorizedException('FHIR02', 'Category cannot be null')
+        if (!params.version) throw new ApiUnauthorizedException('FHIR02', 'Version cannot be null')
         log.debug("importCodSets")
+        def category = params.category.toString()
+        def version = params.version.toString()
 
-        def codeSets = serverClient.getCodeSets('json')
+        def codeSets = serverClient.getCodeSets(category, version, 'json')
         Map codeSetMap = new JsonSlurper().parseText(codeSets)
         bindMapToCodeSet currentUser, new HashMap(codeSetMap)
     }
@@ -46,12 +51,12 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
         codeSetMap.codeSystem.concept.each { concept ->
             BytesRef bytesRef = new BytesRef()
             terminologies.each { terminology ->
-                terminology.terms.map { term ->
+                terminology.terms.each { term ->
                     Term codeSetTerm = new Term()
-               //     codeSetTerm.label = term.label
-                    codeSetTerm.code = term.code
-               //     codeSetTerm.definition = term.definition
-               //     codeSetTerm.url = term.url
+                    codeSetTerm.label = !term.label ? "" : term.label
+                    codeSetTerm.code = !term.code ? "" : term.code
+                    codeSetTerm.definition = !term.definition ? "" : term.definition
+                    codeSetTerm.url = !term.url ? "" : term.url
                     codeSet.addToTerms(term)
                 }
             }
@@ -72,7 +77,6 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
     private void  processMetadata(Map<String, Object> codeSetMap, CatalogueItem catalogueItem ) {
         codeSetMap.each { key, value ->
             if (!(key in NON_METADATA_KEYS)) {
-          //      String extractedValue = value invalue.toString()
                 catalogueItem.addToMetadata(namespace: namespace, key: key, value: value.toString(), createdBy: "test@test.com" )
             }
         }

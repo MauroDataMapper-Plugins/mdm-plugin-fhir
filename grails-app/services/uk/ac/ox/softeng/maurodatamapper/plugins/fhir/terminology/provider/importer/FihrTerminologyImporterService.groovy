@@ -2,6 +2,8 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.impor
 
 import grails.web.databinding.DataBindingUtils
 import groovy.json.JsonSlurper
+import org.apache.commons.text.StringEscapeUtils
+import org.hsqldb.lib.StringUtil
 import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
@@ -24,10 +26,12 @@ class FihrTerminologyImporterService extends FhirCodeSystemTerminologyService {
   //  @Override
     Terminology importTerminology(User currentUser, FhirTerminologyImporterProviderServiceParameters params) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
-        if (!params.endpoint) throw new ApiUnauthorizedException('FHIR01', 'Endpoint cannot be null')
-        log.debug("importCodSets")
-        def endpoint = params.endpoint.toString()
-        def codeSystems = serverClient.getCodeSystemTerminologies(endpoint, 'json')
+        if (!params.category) throw new ApiUnauthorizedException('FHIR01', 'Category cannot be null')
+        if (!params.version) throw new ApiUnauthorizedException('FHIR01', 'Version cannot be null')
+        log.debug("Terminology")
+        def category = params.category.toString()
+        def version = params.version.toString()
+        def codeSystems = serverClient.getCodeSystemTerminologies(category, version, 'json')
         Map terminology = new JsonSlurper().parseText(codeSystems)
         bindMapToTerminology currentUser, new HashMap(terminology)
     }
@@ -50,7 +54,7 @@ class FihrTerminologyImporterService extends FhirCodeSystemTerminologyService {
         terminology
     }
 
-    void bindTermRelationships(Terminology terminology, List<Map> termRelationships) {
+    public void bindTermRelationships(Terminology terminology, List<Map> termRelationships) {
         termRelationships.each {tr ->
             Term sourceTerm = new Term()
             sourceTerm.label = tr.code.toString()

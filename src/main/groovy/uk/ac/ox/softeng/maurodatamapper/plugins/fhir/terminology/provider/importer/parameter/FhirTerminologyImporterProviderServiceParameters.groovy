@@ -23,14 +23,25 @@ import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.
 
 class FhirTerminologyImporterProviderServiceParameters extends ModelImporterProviderServiceParameters{
     @ImportParameterConfig(
-            displayName = 'Endpoint',
-            description = 'Terminology data Endpoint',
+            displayName = 'Category',
+            description = 'Terminology data Category',
             order = -1,
             group = @ImportGroupConfig(
                     name = 'FHIR terminology Data',
                     order = 1
             )
     )
-    String endpoint
+    String category
+
+    @ImportParameterConfig(
+            displayName = 'Version',
+            description = 'Terminology data Version',
+            order = -1,
+            group = @ImportGroupConfig(
+                    name = 'FHIR terminology Data Version',
+                    order = 2
+            )
+    )
+    String version
 
 }

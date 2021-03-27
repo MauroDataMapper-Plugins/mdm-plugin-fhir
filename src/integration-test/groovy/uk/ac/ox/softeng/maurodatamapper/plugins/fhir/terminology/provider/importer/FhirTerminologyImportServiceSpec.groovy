@@ -48,7 +48,8 @@ class FhirTerminologyImportServiceSpec extends BaseIntegrationSpec {
         def parameters = new FhirTerminologyImporterProviderServiceParameters(
                 modelName: entryId,
         )
-        parameters.endpoint = "STU3/CodeSystem/CareConnect-ConditionCategory-1/_history/1.0?_format="
+        parameters.category = "CareConnect-ConditionCategory-1"
+        parameters.version = "1.0"
         when:
         def terminology = fhirCodeSystemTerminologyService.importTerminology(admin, parameters)
 
