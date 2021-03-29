@@ -17,31 +17,51 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter
 
-import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.ModelImporterProviderServiceParameters
+
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportGroupConfig
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportParameterConfig
+import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.parameter.TerminologyImporterProviderServiceParameters
 
-class FhirTerminologyImporterProviderServiceParameters extends ModelImporterProviderServiceParameters{
-    @ImportParameterConfig(
-            displayName = 'Category',
-            description = 'Terminology data Category',
-            order = -1,
-            group = @ImportGroupConfig(
-                    name = 'FHIR terminology Data',
-                    order = 1
-            )
-    )
-    String category
+class FhirTerminologyImporterProviderServiceParameters extends TerminologyImporterProviderServiceParameters {
 
     @ImportParameterConfig(
-            displayName = 'Version',
-            description = 'Terminology data Version',
-            order = -1,
-            group = @ImportGroupConfig(
-                    name = 'FHIR terminology Data Version',
-                    order = 2
-            )
-    )
-    String version
+        displayName = 'FHIR Server Host',
+        description = ['The FHIR host to import from. (e.g. https://fhir.hl7.org.uk)',
+            'URL for importing will be {fhirHost}/{version}/CodeSystem/{codeSystemName}?',
+            'If no version parameter is supplied then URL will be {fhirHost}/CodeSystem/{codeSystemName}?'
+        ],
+        descriptionJoinDelimiter = ' ',
+        order = 0,
+        group = @ImportGroupConfig(
+            name = 'FHIR Settings',
+            order = -1
+        ))
+    String fhirHost
+
+    @ImportParameterConfig(
+        optional = true,
+        displayName = 'FHIR Publication Version',
+        description = ['The UK FHIR version to import. (e.g. STU3).',
+            'If not provided then STU3 version will be used as the CodeSystem endpoint is not currently available at the top level.'],
+        descriptionJoinDelimiter = ' ',
+        order = 1,
+        group = @ImportGroupConfig(
+            name = 'FHIR Settings',
+            order = -1
+        ))
+    String fhirVersion = 'STU3'
+
+    @ImportParameterConfig(
+        optional = true,
+        displayName = 'Value Set name',
+        description = ['Name of the individual Value Set Resource to import.',
+            'If this is left blank then all Value Sets will be imported for the defined version.'],
+        descriptionJoinDelimiter = ' ',
+        order = 2,
+        group = @ImportGroupConfig(
+            name = 'FHIR Settings',
+            order = -1
+        ))
+    String modelName
 
 }

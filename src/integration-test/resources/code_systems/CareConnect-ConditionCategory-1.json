@@ -1,0 +1,40 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "CareConnect-ConditionCategory-1",
+  "url": "https://fhir.nhs.uk/STU3/CodeSystem/CareConnect-ConditionCategory-1",
+  "version": "1.0.0",
+  "name": "Care Connect Condition Category",
+  "status": "draft",
+  "date": "2017-08-01T00:00:00+00:00",
+  "publisher": "HL7 UK",
+  "description": "A CodeSystem to identify the category of a condition.",
+  "copyright": "Copyright © 2016 HL7 UK",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "complaint",
+      "display": "Complaint"
+    },
+    {
+      "code": "symptom",
+      "display": "Symptom"
+    },
+    {
+      "code": "finding",
+      "display": "Finding"
+    },
+    {
+      "code": "diagnosis",
+      "display": "Diagnosis"
+    },
+    {
+      "code": "problem",
+      "display": "Problem"
+    },
+    {
+      "code": "need",
+      "display": "Need"
+    }
+  ]
+}
