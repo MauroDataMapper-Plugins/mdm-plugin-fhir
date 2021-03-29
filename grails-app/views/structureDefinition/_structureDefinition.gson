@@ -27,6 +27,7 @@ json {
     resourceType    fhirMetadata.resourceType
     url             fhirMetadata.url
     version         fhirMetadata.version
+    name fhirMetadata.name
     status          fhirMetadata.status
     date            fhirMetadata.date
     publisher       fhirMetadata.publisher
