@@ -108,6 +108,30 @@ class FhirServerClient {
         retrieveMapFromClient('/StructureDefinition/{entryId}?_format=json', [entryId: entryId])
     }
 
+    Map<String, Object> getValueSets(int count) {
+        retrieveMapFromClient('/ValueSet?_summary=text&_format=json&_count={count}', [count: count])
+    }
+
+    Map<String, Object> getValueSetCount() {
+        retrieveMapFromClient('/ValueSet?_summary=count&_format=json', [:])
+    }
+
+    Map<String, Object> getValueSetEntry(String entryId) {
+        retrieveMapFromClient('/ValueSet/{entryId}?_format=json', [entryId: entryId])
+    }
+
+    Map<String, Object> getCodeSystems(int count) {
+        retrieveMapFromClient('/CodeSystem?_summary=text&_format=json&_count={count}', [count: count])
+    }
+
+    Map<String, Object> getCodeSystemCount() {
+        retrieveMapFromClient('/CodeSystem?_summary=count&_format=json', [:])
+    }
+
+    Map<String, Object> getCodeSystemEntry(String entryId) {
+        retrieveMapFromClient('/CodeSystem/{entryId}?_format=json', [entryId: entryId])
+    }
+
     private Map<String, Object> retrieveMapFromClient(String url, Map params) {
         try {
             Flowable<Map> response = client.retrieve(HttpRequest.GET(UriBuilder.of
