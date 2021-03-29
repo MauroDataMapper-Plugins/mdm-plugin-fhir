@@ -22,9 +22,12 @@ import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
@@ -47,19 +50,25 @@ import java.nio.file.Paths
 class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
     FhirCodeSetImporterProviderService fhirCodeSetImporterProviderService
+    FhirTerminologyImporterProviderService fhirTerminologyImporterProviderService
     CodeSetService codeSetService
     AuthorityService authorityService
+    TerminologyService terminologyService
 
     @Shared
     ErsatzServer ersatz
 
     @Shared
     Path resourcesPath
+    @Shared
+    Path codeSystemsResourcesPath
 
     @OnceBefore
     void setupServerClient() {
         resourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'value_sets').toAbsolutePath()
+        codeSystemsResourcesPath =
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()
         ersatz = new ErsatzServer()
     }
 
@@ -89,6 +98,7 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
         given:
         setupDomainData()
         String entryId = 'CareConnect-AdministrativeGender-1'
+        importTerminology('administrative-gender')
         ersatz.expectations {
             GET("/ValueSet/$entryId") {
                 query('_format', 'json')
@@ -98,20 +108,6 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
                     code(200)
                     body(loadJsonString("${entryId}.json"))
                 }
-            }
-            GET("/ValueSet/$entryId") {
-                query('_format', 'json')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'text')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'count')
-                called(0)
             }
         }
         def parameters = new FhirCodeSetImporterProviderServiceParameters(
@@ -124,6 +120,8 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         codeSet
+        codeSet.metadata.size() == 28
+        codeSet.terms.size() == 4
     }
 
     def 'CS02: Test importing CareConnect-AllergyCertainty-1'() {
@@ -141,20 +139,6 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
                     body(loadJsonString("${entryId}.json"))
                 }
             }
-            GET("/ValueSet/$entryId") {
-                query('_format', 'json')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'text')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'count')
-                called(0)
-            }
         }
         def parameters = new FhirCodeSetImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
@@ -167,12 +151,21 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         codeSet
+        codeSet.metadata.size() == 7
+        !codeSet.terms
+        codeSet.rules.size() == 1
+        codeSet.rules.first().name == 'SNOMED CT January 2018 International Edition filter'
+        codeSet.rules.first().ruleRepresentations.size() == 1
+        codeSet.rules.first().ruleRepresentations.first().language == 'fhir constraint ='
+        codeSet.rules.first().ruleRepresentations.first().representation ==
+        '(385434005 |Improbable diagnosis| OR 2931005 |Probable diagnosis| OR 255545003 |Definite| OR 410605003 |Confirmed present|)'
     }
 
     def 'CS03: Test importing CareConnect-ConditionCategory-1'() {
         given:
         setupDomainData()
         String entryId = 'CareConnect-ConditionCategory-1'
+        importTerminology(entryId)
         String version = 'STU3'
         ersatz.expectations {
             GET("/$version/ValueSet/$entryId") {
@@ -183,20 +176,6 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
                     code(200)
                     body(loadJsonString("${entryId}.json"))
                 }
-            }
-            GET("/ValueSet/$entryId") {
-                query('_format', 'json')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'text')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'count')
-                called(0)
             }
         }
         def parameters = new FhirCodeSetImporterProviderServiceParameters(
@@ -210,12 +189,15 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         codeSet
+        codeSet.metadata.size() == 7
+        codeSet.terms.size() == 6
     }
 
     def 'CS04: Test importing CareConnect-EthnicCategory-1'() {
         given:
         setupDomainData()
         String entryId = 'CareConnect-EthnicCategory-1'
+        importTerminology(entryId)
         String version = 'STU3'
         ersatz.expectations {
             GET("/$version/ValueSet/$entryId") {
@@ -226,20 +208,6 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
                     code(200)
                     body(loadJsonString("${entryId}.json"))
                 }
-            }
-            GET("/ValueSet/$entryId") {
-                query('_format', 'json')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'text')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'count')
-                called(0)
             }
         }
         def parameters = new FhirCodeSetImporterProviderServiceParameters(
@@ -253,6 +221,8 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         codeSet
+        codeSet.metadata.size() == 11
+        codeSet.terms.size() == 68
     }
 
     def 'CS05: Test importing CareConnect-PersonStatedGender-DDMAP-1'() {
@@ -269,20 +239,6 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
                     body(loadJsonString("${entryId}.json"))
                 }
             }
-            GET("/ValueSet/$entryId") {
-                query('_format', 'json')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'text')
-                called(0)
-            }
-            GET("/ValueSet") {
-                query('_format', 'json')
-                query('_summary', 'count')
-                called(0)
-            }
         }
         def parameters = new FhirCodeSetImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
@@ -296,6 +252,36 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
         ApiBadRequestException exception = thrown(ApiBadRequestException)
         exception.errorCode == 'FCC01'
         exception.message == "Cannot import CodeSet without importing [${entryId}] first"
+    }
+
+    def 'CS06: Test importing CareConnect-HumanLanguage-1'() {
+        given:
+        setupDomainData()
+        String entryId = 'CareConnect-HumanLanguage-1'
+        importTerminology(entryId)
+        ersatz.expectations {
+            GET("/ValueSet/$entryId") {
+                query('_format', 'json')
+                called(1)
+                responder {
+                    contentType('application/json')
+                    code(200)
+                    body(loadJsonString("${entryId}.json"))
+                }
+            }
+        }
+        def parameters = new FhirCodeSetImporterProviderServiceParameters(
+            fhirHost: ersatz.httpUrl,
+            modelName: entryId
+        )
+
+        when:
+        importAndValidateModel(entryId, parameters)
+
+        then: 'As the terminology has been loaded from STU3 and the CodeSet from the root the concepts arent the same'
+        ApiBadRequestException exception = thrown(ApiBadRequestException)
+        exception.errorCode == 'FCC02'
+        exception.message == 'Term [mo] does not exist inside terminology [CareConnect-HumanLanguage-1]'
     }
 
     private CodeSet importAndValidateModel(String entryId, FhirCodeSetImporterProviderServiceParameters parameters) {
@@ -316,5 +302,37 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
         Path testFilePath = resourcesPath.resolve("${filename}").toAbsolutePath()
         assert Files.exists(testFilePath)
         Files.readString(testFilePath)
+    }
+
+    String loadTerminologyJsonString(String filename) {
+        Path testFilePath = codeSystemsResourcesPath.resolve("${filename}").toAbsolutePath()
+        assert Files.exists(testFilePath)
+        Files.readString(testFilePath)
+    }
+
+    private void importTerminology(String terminologyId) {
+        ersatz.expectations {
+            GET("/STU3/CodeSystem/$terminologyId") {
+                query('_format', 'json')
+                called(1)
+                responder {
+                    contentType('application/json')
+                    code(200)
+                    body(loadTerminologyJsonString("${terminologyId}.json"))
+                }
+            }
+        }
+        def parameters = new FhirTerminologyImporterProviderServiceParameters(
+            fhirHost: ersatz.httpUrl,
+            modelName: terminologyId
+        )
+        Terminology terminology = fhirTerminologyImporterProviderService.importDomain(admin, parameters)
+        terminology.folder = folder
+        terminologyService.validate(terminology)
+        if (terminology.errors.hasErrors()) {
+            GormUtils.outputDomainErrors(messageSource, terminology)
+            throw new ValidationException("Domain object is not valid. Has ${terminology.errors.errorCount} errors", terminology.errors)
+        }
+        terminologyService.saveModelWithContent(terminology)
     }
 }
