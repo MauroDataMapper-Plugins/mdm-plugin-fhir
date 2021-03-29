@@ -2,26 +2,23 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.impor
 
 import grails.web.databinding.DataBindingUtils
 import groovy.json.JsonSlurper
-import org.apache.commons.text.StringEscapeUtils
-import org.hsqldb.lib.StringUtil
 import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirCodeSystemTerminologyService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
-import uk.ac.ox.softeng.maurodatamapper.util.Version
 
 class FhirTerminologyImporterService extends FhirCodeSystemTerminologyService {
 
     public static List<String> NON_METADATA_KEYS = ['concept', "codeSystem"]
 
     @Autowired
-    FHIRServerClient serverClient
+    FhirClient serverClient
 
   //  @Override
     Terminology importTerminology(User currentUser, FhirTerminologyImporterProviderServiceParameters params) {

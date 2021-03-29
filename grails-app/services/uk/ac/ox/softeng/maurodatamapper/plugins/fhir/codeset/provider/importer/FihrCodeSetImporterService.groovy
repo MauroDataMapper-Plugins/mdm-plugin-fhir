@@ -8,7 +8,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.authority.Authority
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FHIRServerClient
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
@@ -18,7 +18,7 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
 
     public static List<String> NON_METADATA_KEYS = ['concept', "codeSystem"]
     @Autowired
-    FHIRServerClient serverClient
+    FhirClient serverClient
 
     @Autowired
     TerminologyService terminologyService

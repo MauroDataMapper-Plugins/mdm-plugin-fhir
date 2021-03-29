@@ -7,7 +7,7 @@ import io.micronaut.http.client.annotation.Client
 
 @Client("http://fhir.hl7.org.uk/")
 @Header(name = "ContentType", value="application/fhir+json")
-interface FHIRServerClient {
+interface FhirClient {
     @Get("STU3/CodeSystem/{category}/_history/{version}?_format={format}")
     String getCodeSystemTerminologies(String category, String version, String format)
 
