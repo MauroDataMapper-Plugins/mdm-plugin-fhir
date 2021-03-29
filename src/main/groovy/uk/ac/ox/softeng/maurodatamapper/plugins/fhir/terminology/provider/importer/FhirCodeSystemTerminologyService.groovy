@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
@@ -28,7 +29,7 @@ abstract class FhirCodeSystemTerminologyService<T extends FhirTerminologyImporte
     extends TerminologyImporterProviderService<T> {
 
     @Autowired
-    FihrTerminologyImporterService jsonImporter
+    FhirTerminologyImporterService jsonImporter
 
     abstract Terminology importTerminology(User currentUser, T params)
 
@@ -37,6 +38,12 @@ abstract class FhirCodeSystemTerminologyService<T extends FhirTerminologyImporte
     }
 
     List<Terminology> importModels(User user, T params) {
+        if (!user) throw new ApiUnauthorizedException('FHIR01', 'User must be logged in to import model')
+        if (params.modelName) {
+            log.debug('Model name supplied, only importing 1 model')
+            return [importModel(user, params)]
+        }
+
         try {
             return jsonImporter.importTerminology(user)
         }

@@ -75,12 +75,14 @@ class FhirTerminologyImportServiceSpec extends BaseIntegrationSpec {
     def "verify Code system terminology"() {
         given:
         String entryId = 'Care Connect Condition Category'
-        new FhirTerminologyImporterProviderServiceParameters(
-                modelName: entryId
+        def parameters = new FhirTerminologyImporterProviderServiceParameters(
+                modelName: entryId,
+                category: "CareConnect-ConditionCategory-1",
+                version: "1.0"
         )
 
         when:
-        def imported = fhirCodeSystemTerminologyService.importTerminology(admin)
+        def imported = fhirCodeSystemTerminologyService.importTerminology(admin, parameters)
 
         then:
         imported

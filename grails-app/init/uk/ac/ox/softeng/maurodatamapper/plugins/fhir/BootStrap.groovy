@@ -19,7 +19,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.bootstrap.BootstrapModels
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
 
 class BootStrap {
 

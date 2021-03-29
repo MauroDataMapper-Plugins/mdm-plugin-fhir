@@ -1,7 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer
 
 import groovy.json.JsonSlurper
-import org.apache.lucene.util.BytesRef
 import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
@@ -29,7 +28,7 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
         return false
     }
 
-    @Override
+  //  @Override
     CodeSet importCodeSet(User currentUser, FhirCodeSetImporterProviderServiceParameters params) {
         if (!currentUser) throw new ApiUnauthorizedException('FHIR02', 'User must be logged in to import model')
         if (!params.category) throw new ApiUnauthorizedException('FHIR02', 'Category cannot be null')
@@ -40,7 +39,7 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
 
         def codeSets = serverClient.getCodeSets(category, version, 'json')
         Map codeSetMap = new JsonSlurper().parseText(codeSets)
-        bindMapToCodeSet currentUser, new HashMap(codeSetMap)
+        bindMapToCodeSet(currentUser, new HashMap(codeSetMap))
     }
 
     CodeSet bindMapToCodeSet(User user, HashMap codeSetMap) {
@@ -48,8 +47,16 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
 
         def terminologies = terminologyService.findAllByLabel(codeSetMap.name)
         def codeSet = new CodeSet()
-        codeSetMap.codeSystem.concept.each { concept ->
-            BytesRef bytesRef = new BytesRef()
+        Map codeSystem = codeSetMap.codeSystem
+        Map conceptProp = codeSetMap.concept
+        def concepts
+        if (codeSystem) {
+            concepts = codeSystem.concept
+        } else if (conceptProp) {
+            concepts = conceptProp
+        }
+
+        concepts.each { concept ->
             terminologies.each { terminology ->
                 terminology.terms.each { term ->
                     Term codeSetTerm = new Term()
@@ -61,6 +68,7 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
                 }
             }
         }
+
         def authority = new Authority()
         authority.label = codeSetMap.name
         authority.createdBy = "test@test.com"
@@ -71,13 +79,15 @@ class FihrCodeSetImporterService extends FhirCodeSetService {
         codeSet.createdBy = "test@test.com"
         codeSet.label = codeSetMap.name
         processMetadata(codeSetMap, codeSet)
+
+        codeSetService.checkImportedCodeSetAssociations(user, codeSet)
         codeSet
     }
 
-    private void  processMetadata(Map<String, Object> codeSetMap, CatalogueItem catalogueItem ) {
+    private void processMetadata(Map<String, Object> codeSetMap, CatalogueItem catalogueItem) {
         codeSetMap.each { key, value ->
             if (!(key in NON_METADATA_KEYS)) {
-                catalogueItem.addToMetadata(namespace: namespace, key: key, value: value.toString(), createdBy: "test@test.com" )
+                catalogueItem.addToMetadata(namespace: namespace, key: key, value: value.toString(), createdBy: "test@test.com")
             }
         }
     }

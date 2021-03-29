@@ -9,11 +9,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FihrCodeSetImporterService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirCodeSystemTerminologyService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FihrTerminologyImporterService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
@@ -32,7 +29,7 @@ import java.nio.file.Paths
 class FhirCodsetImportServiceSpec extends BaseIntegrationSpec {
 
     @Autowired
-    FihrTerminologyImporterService fihrTerminologyImporterService
+    FhirTerminologyImporterService fhirTerminologyImporterService
 
     @Autowired
     FihrCodeSetImporterService fihrCodeSetImporterService
@@ -67,21 +64,15 @@ class FhirCodsetImportServiceSpec extends BaseIntegrationSpec {
         setupDomainData()
 
         String entryId = 'Care Connect Condition Category'
-        def parameters = new FhirCodeSetImporterProviderServiceParameters(
-                modelName: entryId,
-        )
         def param = new FhirTerminologyImporterProviderServiceParameters(
                 modelName: entryId,
         )
-        param.endpoint = "STU3/CodeSystem/CareConnect-ConditionCategory-1/_history/1.0?_format="
-
-        String entryId2 = 'Care Connect Condition Category'
 
         Map terminologies = new JsonSlurper().parseText(new String(loadTestFile("fhir-server-code-systems-payload.json"), Charset.defaultCharset()))
         Map codeSetMap = new JsonSlurper().parseText(new String(loadTestFile("fhir-server-value-set-payload.json"), Charset.defaultCharset()))
 
         when:
-        def terminology = fihrTerminologyImporterService.bindMapToTerminology(admin, terminologies)
+        def terminology = fhirTerminologyImporterService.bindMapToTerminology(admin, terminologies)
         terminology.folder = folder
         check(terminology)
 
@@ -89,7 +80,7 @@ class FhirCodsetImportServiceSpec extends BaseIntegrationSpec {
         saved.id
         saved.label == 'Care Connect Condition Category'
 
-        def codeSet = fihrCodeSetImporterService.bindMapToCodeSet(admin, codeSetMap)
+        def codeSet = fihrCodeSetImporterService.bindMapToCodeSet(admin, codeSetMap as HashMap)
         codeSet.folder = folder
         CodeSet savedCodeSet = codeSetService.saveModelWithContent(codeSet)
 

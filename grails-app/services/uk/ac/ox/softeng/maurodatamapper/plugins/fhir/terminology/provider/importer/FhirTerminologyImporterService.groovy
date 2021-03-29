@@ -16,7 +16,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.Version
 
-class FihrTerminologyImporterService extends FhirCodeSystemTerminologyService {
+class FhirTerminologyImporterService extends FhirCodeSystemTerminologyService {
 
     public static List<String> NON_METADATA_KEYS = ['concept', "codeSystem"]
 
@@ -33,7 +33,7 @@ class FihrTerminologyImporterService extends FhirCodeSystemTerminologyService {
         def version = params.version.toString()
         def codeSystems = serverClient.getCodeSystemTerminologies(category, version, 'json')
         Map terminology = new JsonSlurper().parseText(codeSystems)
-        bindMapToTerminology currentUser, new HashMap(terminology)
+        bindMapToTerminology (currentUser, new HashMap(terminology))
     }
 
     Terminology bindMapToTerminology(User currentUser, Map terminologyMap) {
