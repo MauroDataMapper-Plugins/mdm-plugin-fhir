@@ -18,12 +18,12 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
@@ -33,7 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
 @Slf4j
-class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters> {
+class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters>
+    implements MetadataHandling {
+
+    private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'snapshot', 'differential']
 
     @Autowired
     ApplicationContext applicationContext
@@ -100,7 +103,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         //dataModel initialisation
         DataModel dataModel = new DataModel(label: dataModelName, description: data.description)
-        processMetadata(data, dataModel)
+        processMetadata(data, dataModel, namespace, NON_METADATA_KEYS)
 
         List<Map> datasets = data.snapshot.element
 
@@ -176,7 +179,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         dataClass.minMultiplicity = parseInt(dataset.min)
         dataClass.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
         log.debug('Created dataClass {}', dataClass.label)
-        processMetadata(dataset, dataClass)
+        processMetadata(dataset, dataClass, namespace, NON_METADATA_KEYS)
         if (parentDataClass) {
             parentDataClass.addToDataClasses(dataClass)
         }
@@ -195,82 +198,9 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         dataElement.minMultiplicity = parseInt(dataset.min)
         dataElement.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
         log.debug('Created dataElement {}', dataElement.label)
-        processMetadata(dataset, dataElement)
+        processMetadata(dataset, dataElement, namespace, NON_METADATA_KEYS)
         parentDataClass.addToDataElements(dataElement)
         dataElement
-    }
-
-    private void processMetadata(dataset, dataItem) {
-        List<String> nonMetadata = ['id', 'definition', 'description', 'min', 'max', 'snapshot', 'differential']
-        dataset.each {key, value ->
-            if (!(key in nonMetadata)) {
-                if (!(value instanceof String || value instanceof Integer || value instanceof Boolean)) {
-                    processNestedMetadata(key, value, dataItem)
-                } else {
-                    dataItem.addToMetadata(
-                        namespace: namespace,
-                        key: key,
-                        value: value.toString()
-                    )
-                }
-            }
-        }
-    }
-
-    private void processNestedMetadata(key, dataCollection, dataItem) {
-        try {
-            if (dataCollection instanceof List) {
-                processListedMetadata(key, dataCollection, dataItem)
-            }
-            if (dataCollection instanceof Map) {
-                processMappedMetadata(key, dataCollection, dataItem)
-            }
-        } catch (Exception ex) {
-            throw new ApiInternalException('FHIR04', 'bad nesting, nests are either map or list', ex)
-        }
-    }
-
-    private void processListedMetadata(key, List list, dataItem) {
-        if (list.size() > 1) {
-            list.eachWithIndex {item, index ->
-                if (item instanceof String || item instanceof Integer || item instanceof Boolean) {
-                    dataItem.addToMetadata(
-                        namespace: namespace,
-                        key: "$key[${index}]",
-                        value: item.toString()
-                    )
-                } else if (item instanceof Map) {
-                    processMappedMetadata("$key[${index}]", item, dataItem)
-                }
-            }
-        } else {
-            list.each {item ->
-                if (item instanceof String || item instanceof Integer || item instanceof Boolean) {
-                    dataItem.addToMetadata(
-                        namespace: namespace,
-                        key: key,
-                        value: item.toString()
-                    )
-                } else if (item instanceof Map) {
-                    processMappedMetadata(key, item, dataItem)
-                }
-            }
-        }
-    }
-
-    private void processMappedMetadata(String key, Map map, dataItem) {
-        map.each {mapKey, mapVal ->
-            if (mapVal instanceof String || mapVal instanceof Integer || mapVal instanceof Boolean) {
-                dataItem.addToMetadata(
-                    namespace: namespace,
-                    key: "${key}.${mapKey}",
-                    value: mapVal.toString()
-                )
-            }
-            if (mapVal instanceof List) {
-                processListedMetadata("${key}.${mapKey}", mapVal, dataItem)
-            }
-        }
     }
 
     private static Integer parseInt(def value) {
