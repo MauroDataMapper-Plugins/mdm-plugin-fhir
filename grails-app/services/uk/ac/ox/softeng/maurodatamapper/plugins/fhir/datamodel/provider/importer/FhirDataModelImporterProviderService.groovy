@@ -126,9 +126,9 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         // find all dcs
         List<String> dataClassKeys = dataItemMap
-                .findAll {key, value ->
-                    value.last() == 'id'
-                }.collect {key, value ->
+            .findAll {key, value ->
+                value.last() == 'id'
+            }.collect {key, value ->
             value.findAll {it != 'id'}.join('.')
         }
 
