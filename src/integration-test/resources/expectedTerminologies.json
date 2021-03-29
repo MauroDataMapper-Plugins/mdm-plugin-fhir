@@ -11,7 +11,7 @@
     "canImportMultipleDomains": false
   },
   {
-    "name": "FihrTerminologyImporterService",
+    "name": "FhirTerminologyImporterService",
     "version": "1.0.0-SNAPSHOT",
     "displayName": "FHIR Server Terminology Importer",
     "namespace": "uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer",

@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
 /**
+ * This test requires a live connection to the internet and for the server https://fhir.hl7.org.uk to be live
  * @since 05/03/2021
  */
 @Slf4j
@@ -157,5 +158,234 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
         then:
         ApiBadRequestException ex = thrown(ApiBadRequestException)
         ex.message == 'Requested endpoint could not be found https://fhir.hl7.org.uk/STU3/StructureDefinition/non-existent-entry?_format=json'
+    }
+
+    void 'STU3-04: Test the value set count endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+
+        when:
+        def result = fhirServerClient.getValueSetCount()
+
+        then:
+        result instanceof Map
+        result.total == 75
+        result.resourceType == 'Bundle'
+        result.id
+    }
+
+    void 'STU3-05: Test the value set summary endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+
+        when:
+        def result = fhirServerClient.getValueSets(2)
+
+        then:
+        result instanceof Map
+        result.total == 75
+        result.entry instanceof List
+        result.entry.size() == 2
+        result.entry.first().resource.id
+    }
+
+    void 'STU3-06: Test the value set entry endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+        String entryId = 'CareConnect-AdministrativeGender-1'
+
+        when:
+        def result = fhirServerClient.getValueSetEntry(entryId)
+
+        then:
+        result instanceof Map
+        result.id == entryId
+        result.resourceType == 'ValueSet'
+        result.name == 'Administrative Gender'
+
+    }
+
+    void 'PUB-04: Test the value set count endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+
+        when:
+        def result = fhirServerClient.getValueSetCount()
+
+        then:
+        result instanceof Map
+        result.total == 28
+        result.resourceType == 'Bundle'
+        result.id
+    }
+
+    void 'PUB-05: Test the value set summary endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+
+        when:
+        def result = fhirServerClient.getValueSets(2)
+
+        then:
+        result instanceof Map
+        result.total == 28
+        result.entry instanceof List
+        result.entry.size() == 2
+        result.entry.first().resource.id
+    }
+
+    void 'PUB-06: Test the value set entry endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+        String entryId = 'CareConnect-AdministrativeGender-1'
+
+        when:
+        def result = fhirServerClient.getValueSetEntry(entryId)
+
+        then:
+        result instanceof Map
+        result.id == entryId
+        result.resourceType == 'ValueSet'
+        result.name == 'Care Connect Administrative Gender'
+
+    }
+
+    void 'VER-02: Test the value set count endpoint with a blank version'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', '', applicationContext)
+
+        when:
+        def result = fhirServerClient.getValueSetCount()
+
+        then:
+        result instanceof Map
+        result.total == 28
+        result.resourceType == 'Bundle'
+        result.id
+    }
+
+    void 'GEN-02: Test the value set entry id for non-existent entry'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+        String entryId = 'non-existent-entry'
+
+        when:
+        fhirServerClient.getValueSetEntry(entryId)
+
+        then:
+        ApiBadRequestException ex = thrown(ApiBadRequestException)
+        ex.message == 'Requested endpoint could not be found https://fhir.hl7.org.uk/STU3/ValueSet/non-existent-entry?_format=json'
+    }
+
+    void 'STU3-07: Test the code system count endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+
+        when:
+        def result = fhirServerClient.getCodeSystemCount()
+
+        then:
+        result instanceof Map
+        result.total == 36
+        result.resourceType == 'Bundle'
+        result.id
+    }
+
+    void 'STU3-08: Test the code system summary endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+
+        when:
+        def result = fhirServerClient.getCodeSystems(2)
+
+        then:
+        result instanceof Map
+        result.total == 36
+        result.entry instanceof List
+        result.entry.size() == 2
+        result.entry.first().resource.id
+    }
+
+    void 'STU3-09: Test the code system entry endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+        String entryId = 'CareConnect-ConditionCategory-1'
+
+        when:
+        def result = fhirServerClient.getCodeSystemEntry(entryId)
+
+        then:
+        result instanceof Map
+        result.id == entryId
+        result.resourceType == 'CodeSystem'
+        result.name == 'Care Connect Condition Category'
+
+    }
+
+    void 'PUB-07: Test the code system count endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+
+        when:
+        fhirServerClient.getCodeSystemCount()
+
+        then: 'Only STU3 currently supports CodeSystem'
+        ApiBadRequestException exception = thrown(ApiBadRequestException)
+        exception.errorCode == 'FHIRC01'
+        exception.message.startsWith('Requested endpoint could not be found')
+    }
+
+    void 'PUB-08: Test the code system summary endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+
+        when:
+        fhirServerClient.getCodeSystems(2)
+
+        then: 'Only STU3 currently supports CodeSystem'
+        ApiBadRequestException exception = thrown(ApiBadRequestException)
+        exception.errorCode == 'FHIRC01'
+        exception.message.startsWith('Requested endpoint could not be found')
+    }
+
+    void 'PUB-09: Test the code system entry endpoint'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', applicationContext)
+        String entryId = 'CareConnect-AdministrativeGender-1'
+
+        when:
+        fhirServerClient.getCodeSystemEntry(entryId)
+
+        then: 'Only STU3 currently supports CodeSystem'
+        ApiBadRequestException exception = thrown(ApiBadRequestException)
+        exception.errorCode == 'FHIRC01'
+        exception.message.startsWith('Requested endpoint could not be found')
+
+    }
+
+    void 'VER-03: Test the code system count endpoint with a blank version'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', '', applicationContext)
+
+        when:
+        fhirServerClient.getCodeSystemCount()
+
+        then: 'Only STU3 currently supports CodeSystem'
+        ApiBadRequestException exception = thrown(ApiBadRequestException)
+        exception.errorCode == 'FHIRC01'
+        exception.message.startsWith('Requested endpoint could not be found')
+    }
+
+    void 'GEN-03: Test the code system entry id for non-existent entry'() {
+        given:
+        fhirServerClient = new FhirServerClient('https://fhir.hl7.org.uk', 'STU3', applicationContext)
+        String entryId = 'non-existent-entry'
+
+        when:
+        fhirServerClient.getCodeSystemEntry(entryId)
+
+        then:
+        ApiBadRequestException ex = thrown(ApiBadRequestException)
+        ex.message == 'Requested endpoint could not be found https://fhir.hl7.org.uk/STU3/CodeSystem/non-existent-entry?_format=json'
     }
 }

@@ -15,20 +15,20 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter
 
 
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportGroupConfig
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportParameterConfig
-import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.parameter.TerminologyImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.parameter.CodeSetImporterProviderServiceParameters
 
-class FhirTerminologyImporterProviderServiceParameters extends TerminologyImporterProviderServiceParameters {
+class FhirCodeSetImporterProviderServiceParameters extends CodeSetImporterProviderServiceParameters {
 
     @ImportParameterConfig(
         displayName = 'FHIR Server Host',
         description = ['The FHIR host to import from. (e.g. https://fhir.hl7.org.uk)',
-            'URL for importing will be {fhirHost}/{version}/CodeSystem/{codeSystemName}?',
-            'If no version parameter is supplied then URL will be {fhirHost}/CodeSystem/{codeSystemName}?'
+            'URL for importing will be {fhirHost}/{version}/ValueSet/{valueSetName}?',
+            'If no version parameter is supplied then URL will be {fhirHost}/StructureDefinition/{structureDefinitionName}?'
         ],
         descriptionJoinDelimiter = ' ',
         order = 0,
@@ -42,14 +42,14 @@ class FhirTerminologyImporterProviderServiceParameters extends TerminologyImport
         optional = true,
         displayName = 'FHIR Publication Version',
         description = ['The UK FHIR version to import. (e.g. STU3).',
-            'If not provided then STU3 version will be used as the CodeSystem endpoint is not currently available at the top level.'],
+            'If not provided then the "current" published version will be used.'],
         descriptionJoinDelimiter = ' ',
         order = 1,
         group = @ImportGroupConfig(
             name = 'FHIR Settings',
             order = -1
         ))
-    String fhirVersion = 'STU3'
+    String fhirVersion
 
     @ImportParameterConfig(
         optional = true,
@@ -63,5 +63,4 @@ class FhirTerminologyImporterProviderServiceParameters extends TerminologyImport
             order = -1
         ))
     String modelName
-
 }
