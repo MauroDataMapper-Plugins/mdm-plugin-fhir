@@ -1,13 +1,14 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter
 
+import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter.FhirDataModelJsonExporterService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 import uk.ac.ox.softeng.maurodatamapper.test.json.JsonComparer
 
-import com.google.common.base.CaseFormat
 import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
@@ -28,6 +29,7 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
 
     FhirDataModelImporterProviderService fhirDataModelImporterProviderService
     FhirDataModelJsonExporterService fhirDataModelJsonExporterService
+    DataModelService dataModelService
 
     @Shared
     Path resourcesPath
@@ -59,6 +61,7 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
         //import FHIR Json file
         given:
         String entryId = 'CareConnect-ProcedureRequest-1'
+        String exportedEntryId = "${entryId}_exported"
         String version = 'STU3'
         ersatz.expectations {
             GET("/$version/StructureDefinition/$entryId") {
@@ -70,19 +73,14 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
                     body(loadJsonString("${entryId}.json"))
                 }
             }
-            GET("/StructureDefinition/$entryId") {
+            GET("/$version/StructureDefinition/$exportedEntryId") {
                 query('_format', 'json')
-                called(0)
-            }
-            GET("/StructureDefinition") {
-                query('_format', 'json')
-                query('_summary', 'text')
-                called(0)
-            }
-            GET("/StructureDefinition") {
-                query('_format', 'json')
-                query('_summary', 'count')
-                called(0)
+                called(1)
+                responder {
+                    contentType('application/json')
+                    code(200)
+                    body(loadJsonString("${exportedEntryId}.json"))
+                }
             }
         }
         def parameters = new FhirDataModelImporterProviderServiceParameters(
@@ -93,19 +91,37 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
 
         //dataModel = turn Json into dataModel
         when:
-        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
         then:
-        dataModel
-        dataModel.label == entryId
+        imported
+        imported.label == entryId
 
         //exportJSON = export dataModel into our JSON
         when:
-        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelJsonExporterService.exportDataModel(admin, dataModel))
+        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelJsonExporterService.exportDataModel(admin, imported))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then:
         exportedJson
         validateExportedModel(entryId, exportedJson)
+
+        def reParameters = new FhirDataModelImporterProviderServiceParameters(
+            fhirHost: ersatz.httpUrl,
+            fhirVersion: version,
+            modelName: exportedEntryId
+        )
+
+        when:
+        DataModel reImported = fhirDataModelImporterProviderService.importModel(admin, reParameters)
+
+        then:
+        reImported
+
+        when:
+        ObjectDiff od = dataModelService.getDiffForModels(imported, reImported)
+
+        then:
+        od.getNumberOfDiffs() == 0
     }
 
     String loadJsonString(String filename) {
@@ -117,7 +133,7 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
     void validateExportedModel(String entryId, String exportedModel) {
         assert exportedModel, 'There must be an exported model string'
 
-        Path expectedPath = resourcesPath.resolve("${CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, entryId)}_exported.json")
+        Path expectedPath = resourcesPath.resolve("${entryId}_exported.json")
         if (!Files.exists(expectedPath)) {
             Files.write(expectedPath, exportedModel.bytes)
             Assert.fail("Expected export file ${expectedPath} does not exist")
@@ -127,7 +143,3 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
         verifyJson(expectedJson, exportedModel)
     }
 }
-
-//dataModel reImportedDataModel = import dataModel(exportJSON)
-//dataModelService.diff(exportedDataModel, reImportedDataModel)
-//numberOfDiffs == 0

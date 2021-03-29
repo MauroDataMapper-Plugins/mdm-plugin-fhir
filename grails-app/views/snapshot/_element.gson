@@ -33,9 +33,21 @@ json {
                                                                               '.importer').collectEntries { md -> [md.key, md.value] }
 
     path modelItemMetadata.path
+    representation modelItemMetadata.representation
     call('short', modelItemMetadata['short'])
     alias modelItemMetadata.alias
     comment modelItemMetadata.comment
+    condition modelItemMetadata.condition
+
+    if (modelItemMetadata.any { it.key.startsWith('type') }) {
+        Map<String, Object> typeInfo = modelItemMetadata.findAll { it.key.startsWith('type') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> types = typeInfo.collect { it.value } as List<Map>
+        type tmpl.'/snapshot/type'("typeMap", types)
+    }
 
     if (modelItemMetadata.any { it.key.startsWith('base') }) {
         Map<String, Object> baseInfo = modelItemMetadata.findAll { it.key.startsWith('base') }
