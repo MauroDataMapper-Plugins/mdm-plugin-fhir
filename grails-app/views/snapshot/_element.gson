@@ -26,7 +26,11 @@ json {
     definition modelItem.description
     MultiplicityAware multiplicityItem = modelItem as MultiplicityAware
     min multiplicityItem.minMultiplicity
-    max multiplicityItem.maxMultiplicity
+    if (multiplicityItem.maxMultiplicity == -1) {
+        max '*'
+    } else {
+        max multiplicityItem.maxMultiplicity
+    }
 
     Map<String, Object> modelItemMetadata = modelItem.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider' +
                                                                               '.importer').collectEntries { md -> [md.key, md.value] }
