@@ -4,20 +4,30 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 model {
     Terminology export
 }
+
+Map<String,Object> fhirMetadata = export.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer')
+    .collectEntries {md -> [md.key, md.value]}
+
+Map<String,Object> extensions = [:]
+fhirMetadata.findAll {it.key.startsWith('extension.')}.each { key, val ->
+    extensions[key.substring(10)] = val
+}
+
 json {
     resourceType "CodeSystem"
-    id export.id
-    //url
-    if (export.finalised) version export.modelVersion.toString()
-    name export.label
-    title export.label
-    status export.finalised ? "active" : "draft"
-    date OffsetDateTimeConverter.toString(export.lastUpdated)
-    if (export.authority.label) publisher export.authority.label
+    id export.label
+    if (extensions) extension g.render([extensions])
+    if (fhirMetadata.url) url fhirMetadata.url
+    if (fhirMetadata.version) version fhirMetadata.version
+    name export.aliases[0]
+    if (fhirMetadata.title) title fhirMetadata.title
+    if (fhirMetadata.status) status fhirMetadata.status
+    if (fhirMetadata.date) date fhirMetadata.date
+    if (fhirMetadata.publisher) publisher fhirMetadata.publisher
     if (export.description) description export.description
-    //copyright
-    //caseSensitive
-    content "complete"
+    if (fhirMetadata.copyright) copyright fhirMetadata.copyright
+    if (fhirMetadata.caseSensitive) caseSensitive fhirMetadata.caseSensitive.toString().toBoolean()
+    if (fhirMetadata.content) content fhirMetadata.content
 
     if (export.terms) {
         concept tmpl.exportTermAsFhirConcept(export.terms)
