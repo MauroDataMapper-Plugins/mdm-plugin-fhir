@@ -6,6 +6,10 @@ model {
 
 json {
     code term.code
-    if (term.description) display term.description
-    definition term.getDefinition()
+    if (term.definition && term.description) {
+        display term.description
+        definition term.getDefinition()
+    } else {
+        display term.getDefinition()
+    }
 }
