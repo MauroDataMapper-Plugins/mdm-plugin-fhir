@@ -1,0 +1,11 @@
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+
+model {
+    Term term
+}
+
+json {
+    code term.code
+    if (term.description) display term.description
+    definition term.getDefinition()
+}

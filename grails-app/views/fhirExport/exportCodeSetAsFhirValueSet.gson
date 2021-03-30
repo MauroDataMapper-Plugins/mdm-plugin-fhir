@@ -1,0 +1,25 @@
+import uk.ac.ox.softeng.maurodatamapper.core.rest.converter.json.OffsetDateTimeConverter
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+
+model {
+    CodeSet export
+}
+json {
+    resourceType "ValueSet"
+    id export.id
+    //url
+    if (export.finalised) version export.modelVersion.toString()
+    name export.label
+    title export.label
+    status export.finalised ? "active" : "draft"
+    date OffsetDateTimeConverter.toString(export.lastUpdated)
+    if (export.authority.label) publisher export.authority.label
+    if (export.description) description export.description
+    //copyright
+    content "complete"
+
+    if (export.terms) {
+        compose tmpl.compose(export.terms)
+    }
+
+}
