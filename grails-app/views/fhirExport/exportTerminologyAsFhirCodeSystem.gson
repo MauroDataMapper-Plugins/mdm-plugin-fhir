@@ -8,7 +8,7 @@ json {
     resourceType "CodeSystem"
     id export.id
     //url
-    if (export.finalised) version export.modelVersion
+    if (export.finalised) version export.modelVersion.toString()
     name export.label
     title export.label
     status export.finalised ? "active" : "draft"
