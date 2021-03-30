@@ -77,6 +77,6 @@ class FhirTerminologyJsonExporterService extends TerminologyExporterProviderServ
     }
 
     String getExportViewPath() {
-        '/fhirExport/exportTerminologyAsFhirCodeSystem'
+        '/codeSystem/export'
     }   
 }

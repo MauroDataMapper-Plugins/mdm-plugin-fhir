@@ -30,7 +30,7 @@ json {
     if (fhirMetadata.content) content fhirMetadata.content
 
     if (export.terms) {
-        concept tmpl.exportTermAsFhirConcept(export.terms)
+        concept tmpl.concept(export.terms)
     }
 
 }
