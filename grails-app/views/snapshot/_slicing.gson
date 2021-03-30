@@ -1,0 +1,22 @@
+model {
+    Map<String, Object> slicingMap
+}
+
+//log.warn("${binding.variables}")
+
+json {
+    rules slicingMap.find { it.key == 'rules' }.value
+    if (slicingMap.any { it.key == 'description' }) {
+        description slicingMap.description
+    }
+
+    if (slicingMap.any { it.key.startsWith('discriminator') }) {
+        Map<String, Object> discriminatorInfo = slicingMap.findAll { it.key.startsWith('discriminator') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> discriminators = discriminatorInfo.collect { it.value } as List<Map>
+        discriminator tmpl.'/snapshot/discriminator'("discriminatorMap", discriminators)
+    }
+}

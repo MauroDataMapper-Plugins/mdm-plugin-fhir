@@ -2,10 +2,14 @@ model {
     Map<String, Object> typeMap
 }
 
-log.warn("${binding.variables}")
+//log.warn("${binding.variables}")
 
 json {
-
     code typeMap.find { it.key == 'code' }.value
-
+    if (typeMap.any { it.key == 'targetProfile' }) {
+        targetProfile typeMap.targetProfile
+    }
+    if (typeMap.any { it.key == 'profile' }) {
+        profile typeMap.profile
+    }
 }

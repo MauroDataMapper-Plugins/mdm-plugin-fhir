@@ -1,0 +1,15 @@
+model {
+    Map<String, Object> exampleMap
+}
+
+//log.warn("${binding.variables}")
+
+json {
+    label exampleMap.label
+    if (exampleMap.any { it.key == 'valueString' }) {
+        valueString exampleMap.valueString
+    }
+    if (exampleMap.any { it.key == 'valueUri' }) {
+        valueUri exampleMap.valueUri
+    }
+}

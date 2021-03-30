@@ -5,14 +5,22 @@ model {
     DataModel dataModel
 }
 
-log.warn("${binding.variables}")
+//log.warn("${binding.variables}")
 
 json {
+    Map<String, Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer')
+        .collectEntries { md -> [md.key, md.value] }
 
-    Map<String,Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer')
-    .collectEntries {md -> [md.key, md.value]}
+    resourceType fhirMetadata.resourceType
+    id dataModel.label
+    url fhirMetadata.url
+    version fhirMetadata.version
+    name fhirMetadata.name
+    status fhirMetadata.status
+    date fhirMetadata.date
+    publisher fhirMetadata.publisher
 
-    if (fhirMetadata.any {it.key.startsWith('contact')}) {
+    if (fhirMetadata.any { it.key.startsWith('contact') }) {
         Map<String, Object> contactInfo = fhirMetadata.findAll { it.key.startsWith('contact') }
             .groupBy { it.key.split('\\.').first() }
             .collectEntries { k, v ->
@@ -22,15 +30,11 @@ json {
         contact tmpl.'/contact/contact'("contactMap", contacts)
     }
 
-    id              dataModel.label
-    description     dataModel.description
-    resourceType    fhirMetadata.resourceType
-    url             fhirMetadata.url
-    version         fhirMetadata.version
-    name fhirMetadata.name
-    status          fhirMetadata.status
-    date            fhirMetadata.date
-    publisher       fhirMetadata.publisher
+    if (dataModel.aliases) {
+        alias dataModel.aliases
+    }
+
+    description dataModel.description
     purpose fhirMetadata.purpose
     copyright fhirMetadata.copyright
     fhirVersion fhirMetadata.fhirVersion
@@ -40,12 +44,10 @@ json {
     baseDefinition fhirMetadata.baseDefinition
     derivation fhirMetadata.derivation
 
-
     snapshot {
         List<ModelItem> elements = []
         elements.addAll(dataModel.dataClasses)
         elements.addAll(dataModel.getAllDataElements())
         element tmpl.'/snapshot/element'('modelItem', elements)
     }
-
 }

@@ -1,0 +1,9 @@
+model {
+    Map<String, Object> referenceMap
+}
+
+//log.warn("${binding.variables}")
+
+json {
+    reference valueSetReferenceMap.find { it.key == 'reference' }.value
+}

@@ -2,11 +2,9 @@ model {
     Map<String, Object> mappingMap
 }
 
-log.warn("${binding.variables}")
+//log.warn("${binding.variables}")
 
 json {
-
     map mappingMap.find { it.key == 'map' }.value
     identity mappingMap.find { it.key == 'identity' }.value
-
 }
