@@ -51,7 +51,7 @@ class FhirCodeSetJsonExporterService extends CodeSetExporterProviderService {
 
     @Override
     String getVersion() {
-        '1.0'
+        getClass().getPackage().getSpecificationVersion() ?: 'SNAPSHOT'
     }
 
     @Override
