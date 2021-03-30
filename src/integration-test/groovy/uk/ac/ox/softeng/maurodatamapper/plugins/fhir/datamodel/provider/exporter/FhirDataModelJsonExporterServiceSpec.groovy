@@ -108,7 +108,8 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
         def reParameters = new FhirDataModelImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
             fhirVersion: version,
-            modelName: exportedEntryId
+            //name has to be entryId or it flags that as a Diff
+            modelName: entryId
         )
 
         when:
