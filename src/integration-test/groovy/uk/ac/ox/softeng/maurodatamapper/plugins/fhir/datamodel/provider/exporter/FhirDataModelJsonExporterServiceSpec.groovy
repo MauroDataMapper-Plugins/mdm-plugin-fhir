@@ -125,6 +125,73 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
         od.getNumberOfDiffs() == 0
     }
 
+    def "CC02: verify exported DataModel JSON content - CareConnect-OxygenSaturation-Observation-1"() {
+        //import FHIR Json file
+        given:
+        String entryId = 'CareConnect-OxygenSaturation-Observation-1'
+        String exportedEntryId = "${entryId}_exported"
+        String version = 'STU3'
+        ersatz.expectations {
+            GET("/$version/StructureDefinition/$entryId") {
+                query('_format', 'json')
+                called(1)
+                responder {
+                    contentType('application/json')
+                    code(200)
+                    body(loadJsonString("${entryId}.json"))
+                }
+            }
+            GET("/$version/StructureDefinition/$exportedEntryId") {
+                query('_format', 'json')
+                called(1)
+                responder {
+                    contentType('application/json')
+                    code(200)
+                    body(loadJsonString("${exportedEntryId}.json"))
+                }
+            }
+        }
+        def parameters = new FhirDataModelImporterProviderServiceParameters(
+            fhirHost: ersatz.httpUrl,
+            fhirVersion: version,
+            modelName: entryId
+        )
+
+        //dataModel = turn Json into dataModel
+        when:
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        then:
+        imported
+        imported.label == entryId
+
+        //exportJSON = export dataModel into our JSON
+        when:
+        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelJsonExporterService.exportDataModel(admin, imported))
+        String exportedJson = new String(exportedJsonBytes.toByteArray())
+
+        then:
+        exportedJson
+        validateExportedModel(entryId, exportedJson)
+
+        def reParameters = new FhirDataModelImporterProviderServiceParameters(
+            fhirHost: ersatz.httpUrl,
+            fhirVersion: version,
+            modelName: entryId
+        )
+
+        when:
+        DataModel reImported = fhirDataModelImporterProviderService.importModel(admin, reParameters)
+
+        then:
+        reImported
+
+        when:
+        ObjectDiff od = dataModelService.getDiffForModels(imported, reImported)
+
+        then:
+        od.getNumberOfDiffs() == 0
+    }
+
     String loadJsonString(String filename) {
         Path testFilePath = resourcesPath.resolve("${filename}").toAbsolutePath()
         assert Files.exists(testFilePath)
