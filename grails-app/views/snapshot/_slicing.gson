@@ -8,6 +8,10 @@ json {
         description slicingMap.description
     }
 
+    if (slicingMap.any { it.key == 'ordered' }) {
+        ordered slicingMap.ordered
+    }
+
     if (slicingMap.any { it.key.startsWith('discriminator') }) {
         Map<String, Object> discriminatorInfo = slicingMap.findAll { it.key.startsWith('discriminator') }
             .groupBy { it.key.split('\\.').first() }

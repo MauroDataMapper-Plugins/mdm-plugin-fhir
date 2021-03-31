@@ -77,6 +77,15 @@ json {
         type tmpl.'/snapshot/type'("typeMap", types)
     }
 
+    if (modelItemMetadata.any { it.key == 'fixedCode' }) {
+        fixedCode modelItemMetadata.fixedCode
+    }
+
+    if (modelItemMetadata.any { it.key == 'fixedString' }) {
+        fixedString modelItemMetadata.fixedString
+    }
+
+
     if (modelItemMetadata.any { it.key == 'fixedUri' }) {
         fixedUri modelItemMetadata.fixedUri
     }
@@ -109,6 +118,10 @@ json {
         base tmpl.'/snapshot/base'("baseMap", bases)
     }
 
+    if (modelItemMetadata.any { it.key == 'contentReference' }) {
+        contentReference modelItemMetadata.contentReference
+    }
+
     if (modelItemMetadata.any { it.key.startsWith('constraint') }) {
         Map<String, Object> constraintInfo = modelItemMetadata.findAll { it.key.startsWith('constraint') }
             .groupBy { it.key.split('\\.').first() }
@@ -122,6 +135,9 @@ json {
     if (modelItemMetadata.any { it.key == 'isModifier' }) {
         isModifier modelItemMetadata.isModifier
     }
+    if (modelItemMetadata.any { it.key == 'mustSupport' }) {
+        mustSupport modelItemMetadata.mustSupport
+    }
     call('isSummary', modelItemMetadata['isSummary'])
 
     if (modelItemMetadata.any { it.key.startsWith('binding') }) {
@@ -132,6 +148,10 @@ json {
             } as Map<String, Object>
         List<Map> bindings = bindingInfo.collect { it.value } as List<Map>
         binding tmpl.'/snapshot/binding'("bindingMap", bindings)
+    }
+
+    if (modelItemMetadata.any { it.key == 'contentReference' }) {
+        contentReference modelItemMetadata.contentReference
     }
 
     if (modelItemMetadata.any { it.key.startsWith('mapping') }) {

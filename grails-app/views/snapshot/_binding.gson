@@ -16,6 +16,10 @@ json {
         extension tmpl.'/snapshot/extension'("extensionMap", extensions)
     }
 
+    if (bindingMap.any { it.key == 'valueSetUri' }) {
+        valueSetUri bindingMap.valueSetUri
+    }
+
     if (bindingMap.any { it.key.startsWith('valueSetReference') }) {
         Map<String, Object> valueSetReferenceInfo = bindingMap.findAll { it.key.startsWith('valueSetReference') }
             .groupBy { it.key.split('\\.').first() }
