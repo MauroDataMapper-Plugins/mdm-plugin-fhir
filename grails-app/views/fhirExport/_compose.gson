@@ -1,9 +1,0 @@
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
-
-model {
-    Term term
-}
-
-json {
-    include tmpl.include(term)
-}
