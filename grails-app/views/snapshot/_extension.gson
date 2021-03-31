@@ -1,0 +1,24 @@
+model {
+    Map<String, Object> extensionMap
+}
+
+json {
+    url extensionMap.find { it.key == 'url' }.value
+
+    if (extensionMap.any { it.key.startsWith('valueReference') }) {
+        Map<String, Object> valueReferenceInfo = extensionMap.findAll { it.key.startsWith('valueReference') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> valueReferences = valueReferenceInfo.collect { it.value } as List<Map>
+        valueReference tmpl.'/snapshot/valueSetReference'("referenceMap", valueReferences)
+    }
+
+    if (extensionMap.any { it.key == 'valueString' }) {
+        valueString extensionMap.valueString
+    }
+    if (extensionMap.any { it.key == 'valueBoolean' }) {
+        valueBoolean extensionMap.valueBoolean
+    }
+}

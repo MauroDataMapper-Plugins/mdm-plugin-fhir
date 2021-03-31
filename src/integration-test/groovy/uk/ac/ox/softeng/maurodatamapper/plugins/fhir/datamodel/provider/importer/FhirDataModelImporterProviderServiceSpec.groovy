@@ -17,15 +17,20 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer
 
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
+import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import com.stehno.ersatz.ErsatzServer
+import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
+import grails.validation.ValidationException
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import spock.lang.Shared
@@ -36,9 +41,11 @@ import java.nio.file.Paths
 
 @Slf4j
 @Integration
+@Rollback
 class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
 
     FhirDataModelImporterProviderService fhirDataModelImporterProviderService
+    DataModelService dataModelService
 
     @Shared
     ErsatzServer ersatz
@@ -63,10 +70,13 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
 
     @Override
     void setupDomainData() {
+        folder = new Folder(label: 'catalogue', createdBy: admin.emailAddress)
+        checkAndSave(folder)
     }
 
     def 'CC01: Test importing CareConnect-ProcedureRequest-1 datamodel'() {
         given:
+        setupDomainData()
         String entryId = 'CareConnect-ProcedureRequest-1'
         String version = 'STU3'
         ersatz.expectations {
@@ -95,12 +105,14 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
             }
         }
         def parameters = new FhirDataModelImporterProviderServiceParameters(
-                fhirHost: ersatz.httpUrl,
-                fhirVersion: version,
-                modelName: entryId
+            fhirHost: ersatz.httpUrl,
+            fhirVersion: version,
+            modelName: entryId,
+            folderId: folder.id
         )
         when:
-        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        DataModel dataModel = importAndValidateModel(entryId, parameters)
+
         then:
         dataModel
         dataModel.label == entryId
@@ -117,21 +129,21 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         dataClass.label == 'ProcedureRequest'
         dataClass.minMultiplicity == 0
         dataClass.maxMultiplicity == -1
-        dataClass.metadata.size() == 36
+        dataClass.metadata.size() == 35
         dataClass.dataClasses.size() == 8
         dataClass.dataClasses.collect { it.label } == [
-                'identifier', 'requisition', 'category', 'code', 'requester', 'reasonCode', 'bodySite', 'note'
-        ]
+            'identifier', 'requisition', 'category', 'code', 'requester', 'reasonCode', 'bodySite', 'note'
+        ].sort()
         dataClass.dataElements.size() == 26
-        dataClass.dataElements.collect { it.label } == [
-                'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', /* 'identifier',*/ 'definition',
-                'basedOn',
-                'replaces', /*'requisition',*/ 'status', 'intent', 'priority', 'doNotPerform', /*'category', 'code', */ 'subject', 'context',
-                'occurrence[x]', 'asNeeded[x]', 'authoredOn',
-                /*'requester', */ 'performerType', 'performer', /*'reasonCode', */ 'reasonReference', 'supportingInfo', 'specimen', /*'bodySite',
+        dataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', /* 'identifier',*/ 'definition',
+            'basedOn',
+            'replaces', /*'requisition',*/ 'status', 'intent', 'priority', 'doNotPerform', /*'category', 'code', */ 'subject', 'context',
+            'occurrence[x]', 'asNeeded[x]', 'authoredOn',
+            /*'requester', */ 'performerType', 'performer', /*'reasonCode', */ 'reasonReference', 'supportingInfo', 'specimen', /*'bodySite',
             'note',*/
-                'relevantHistory',
-        ]
+            'relevantHistory',
+        ].sort()
 
         when:
         DataClass subDataClass = dataClass.dataClasses.find { it.label == 'identifier' }
@@ -139,9 +151,9 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         !subDataClass.dataClasses
         subDataClass.dataElements.size() == 8
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'use', 'type', 'system', 'value', 'period', 'assigner'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'use', 'type', 'system', 'value', 'period', 'assigner'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'requisition' }
@@ -149,39 +161,39 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         !subDataClass.dataClasses
         subDataClass.dataElements.size() == 8
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'use', 'type', 'system', 'value', 'period', 'assigner'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'use', 'type', 'system', 'value', 'period', 'assigner'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'category' }
 
         then:
         subDataClass.dataElements.size() == 4
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'coding', /*'coding:snomedCT',*/ 'text'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'coding', /*'coding:snomedCT',*/ 'text'
+        ].sort()
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
         subDataClass.dataClasses.first().dataElements.size() == 8
-        subDataClass.dataClasses.first().dataElements.collect { it.label } == [
-                'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
-        ]
+        subDataClass.dataClasses.first().dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'code' }
 
         then:
         subDataClass.dataElements.size() == 4
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'coding',/* 'coding:snomedCT', */ 'text'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'coding', /* 'coding:snomedCT', */ 'text'
+        ].sort()
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
         subDataClass.dataClasses.first().dataElements.size() == 8
-        subDataClass.dataClasses.first().dataElements.collect { it.label } == [
-                'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
-        ]
+        subDataClass.dataClasses.first().dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'requester' }
@@ -189,39 +201,39 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         !subDataClass.dataClasses
         subDataClass.dataElements.size() == 5
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'modifierExtension', 'agent', 'onBehalfOf'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'modifierExtension', 'agent', 'onBehalfOf'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'reasonCode' }
 
         then:
         subDataClass.dataElements.size() == 4
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'coding', /*'coding:snomedCT', */ 'text'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'coding', /*'coding:snomedCT', */ 'text'
+        ].sort()
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
         subDataClass.dataClasses.first().dataElements.size() == 8
-        subDataClass.dataClasses.first().dataElements.collect { it.label } == [
-                'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
-        ]
+        subDataClass.dataClasses.first().dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'bodySite' }
 
         then:
         subDataClass.dataElements.size() == 4
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'coding', /*'coding:snomedCT',*/ 'text'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'coding', /*'coding:snomedCT',*/ 'text'
+        ].sort()
         subDataClass.dataClasses.size() == 1
         subDataClass.dataClasses.first().label == 'coding:snomedCT'
         subDataClass.dataClasses.first().dataElements.size() == 8
-        subDataClass.dataClasses.first().dataElements.collect { it.label } == [
-                'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
-        ]
+        subDataClass.dataClasses.first().dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'extension:snomedCTDescriptionID', 'system', 'version', 'code', 'display', 'userSelected'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'note' }
@@ -229,13 +241,14 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         then:
         !subDataClass.dataClasses
         subDataClass.dataElements.size() == 5
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'author[x]', 'time', 'text'
-        ]
+        subDataClass.dataElements.collect { it.label }.sort() == [
+            'id', 'extension', 'author[x]', 'time', 'text'
+        ].sort()
     }
 
     def 'CC02: Test importing CareConnect-OxygenSaturation-Observation-1 datamodel'() {
         given:
+        setupDomainData()
         String entryId = 'CareConnect-OxygenSaturation-Observation-1'
         String version = 'STU3'
         ersatz.expectations {
@@ -259,7 +272,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
             modelName: entryId
         )
         when:
-        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        DataModel dataModel = importAndValidateModel(entryId, parameters)
 
         then:
         dataModel
@@ -276,19 +289,19 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         dataClass.label == 'Observation'
         dataClass.minMultiplicity == 0
         dataClass.maxMultiplicity == -1
-        dataClass.metadata.size() == 52
+        dataClass.metadata.size() == 48
         dataClass.dataClasses.size() == 10
-        dataClass.dataClasses.collect { it.label } == [
-                'identifier', 'category', 'code', 'valueQuantity', 'dataAbsentReason', 'bodySite', 'method', 'referenceRange', 'related', 'component'
-        ]
+        dataClass.dataClasses.collect {it.label}.sort() == [
+            'identifier', 'category', 'code', 'valueQuantity', 'dataAbsentReason', 'bodySite', 'method', 'referenceRange', 'related', 'component'
+        ].sort()
         dataClass.dataElements.size() == 19
-        dataClass.dataElements.collect { it.label } == [
-                'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension',/* 'identifier', */ 'basedOn', 'status',
-                /*'category', 'code',*/ 'subject', 'context', 'effective[x]', 'issued', 'performer', /*'valueQuantity', 'dataAbsentReason',*/
-                'interpretation',
-                'comment',
-                /*'bodySite', 'method',*/ 'specimen', 'device', /*'referenceRange', 'related', 'component',*/
-        ]
+        dataClass.dataElements.collect {it.label}.sort() == [
+            'id', 'meta', 'implicitRules', 'language', 'text', 'contained', 'extension', 'modifierExtension', /* 'identifier', */ 'basedOn', 'status',
+            /*'category', 'code',*/ 'subject', 'context', 'effective[x]', 'issued', 'performer', /*'valueQuantity', 'dataAbsentReason',*/
+            'interpretation',
+            'comment',
+            /*'bodySite', 'method',*/ 'specimen', 'device', /*'referenceRange', 'related', 'component',*/
+        ].sort()
 
         when:
         DataClass subDataClass = dataClass.dataClasses.find { it.label == 'category' }
@@ -314,9 +327,9 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         subDataClass
         !subDataClass.dataClasses
         subDataClass.dataElements.size() == 7
-        subDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'value', 'comparator', 'unit', 'system', 'code'
-        ]
+        subDataClass.dataElements.collect {it.label}.sort() == [
+            'id', 'extension', 'value', 'comparator', 'unit', 'system', 'code'
+        ].sort()
 
         when:
         subDataClass = dataClass.dataClasses.find { it.label == 'bodySite' }
@@ -361,9 +374,9 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         valueQuantityComponentDataClass
         !valueQuantityComponentDataClass.dataClasses
         valueQuantityComponentDataClass.dataElements.size() == 7
-        valueQuantityComponentDataClass.dataElements.collect { it.label } == [
-                'id', 'extension', 'value', 'comparator', 'unit', 'system', 'code'
-        ]
+        valueQuantityComponentDataClass.dataElements.collect {it.label}.sort() == [
+            'id', 'extension', 'value', 'comparator', 'unit', 'system', 'code'
+        ].sort()
 
         when:
         DataClass dataAbsentComponentDataClass = componentDataClass.dataClasses.find {it.label == 'dataAbsentReason'}
@@ -377,6 +390,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
     def 'CC03: Test importing CareConnect-GPC-MedicationRequest-1'() {
         // This datamodel has "orphaned" dataelements
         given:
+        setupDomainData()
         String entryId = 'CareConnect-GPC-MedicationRequest-1'
         String version = 'STU3'
         ersatz.expectations {
@@ -401,7 +415,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         )
 
         when:
-        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        DataModel dataModel = importAndValidateModel(entryId, parameters)
 
         then:
         noExceptionThrown()
@@ -482,5 +496,18 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         Path testFilePath = resourcesPath.resolve("${filename}").toAbsolutePath()
         assert Files.exists(testFilePath)
         Files.readString(testFilePath)
+    }
+
+    private DataModel importAndValidateModel(String entryId, FhirDataModelImporterProviderServiceParameters parameters) {
+        DataModel dataModel = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        assert dataModel
+        assert dataModel.label == entryId
+        dataModel.folder = folder
+        dataModelService.validate(dataModel)
+        if (dataModel.errors.hasErrors()) {
+            GormUtils.outputDomainErrors(messageSource, dataModel)
+            throw new ValidationException("Domain object is not valid. Has ${dataModel.errors.errorCount} errors", dataModel.errors)
+        }
+        dataModel
     }
 }

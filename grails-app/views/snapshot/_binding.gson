@@ -1,0 +1,32 @@
+model {
+    Map<String, Object> bindingMap
+}
+
+json {
+    strength bindingMap.find { it.key == 'strength' }.value
+    description bindingMap.find { it.key == 'description' }.value
+
+    if (bindingMap.any { it.key.startsWith('extension') }) {
+        Map<String, Object> extensionInfo = bindingMap.findAll { it.key.startsWith('extension') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> extensions = extensionInfo.collect { it.value } as List<Map>
+        extension tmpl.'/snapshot/extension'("extensionMap", extensions)
+    }
+
+    if (bindingMap.any { it.key == 'valueSetUri' }) {
+        valueSetUri bindingMap.valueSetUri
+    }
+
+    if (bindingMap.any { it.key.startsWith('valueSetReference') }) {
+        Map<String, Object> valueSetReferenceInfo = bindingMap.findAll { it.key.startsWith('valueSetReference') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> valueSetReferences = valueSetReferenceInfo.collect { it.value } as List<Map>
+        valueSetReference tmpl.'/snapshot/valueSetReference'("referenceMap", valueSetReferences)
+    }
+}

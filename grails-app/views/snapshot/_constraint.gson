@@ -1,0 +1,11 @@
+model {
+    Map<String, Object> constraintMap
+}
+
+json {
+    key constraintMap.find { it.key == 'key' }.value
+    severity constraintMap.find { it.key == 'severity' }.value
+    human constraintMap.find { it.key == 'human' }.value
+    expression constraintMap.find { it.key == 'expression' }.value
+    xpath constraintMap.find { it.key == 'xpath' }.value
+}

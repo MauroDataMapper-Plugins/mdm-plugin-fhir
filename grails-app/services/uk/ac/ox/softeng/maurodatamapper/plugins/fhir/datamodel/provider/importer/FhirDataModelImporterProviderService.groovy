@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
@@ -36,7 +37,7 @@ import org.springframework.context.ApplicationContext
 class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters>
     implements MetadataHandling {
 
-    private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'snapshot', 'differential']
+    private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'alias', 'snapshot', 'differential']
 
     @Autowired
     ApplicationContext applicationContext
@@ -103,15 +104,18 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         //dataModel initialisation
         DataModel dataModel = new DataModel(label: dataModelName, description: data.description)
+        if (data.alias) {
+            dataModel.aliases = data.alias as List<String>
+        }
         processMetadata(data, dataModel, namespace, NON_METADATA_KEYS)
 
         List<Map> datasets = data.snapshot.element
 
         // resolving odd id names eg OxygenSaturation valueQuantity
-        datasets = datasets.each {dataset ->
+        datasets = datasets.each { dataset ->
             if (dataset.sliceName && (dataset.path.tokenize('.').last() == dataset.sliceName)) {
                 String accursedSliceName = dataset.sliceName
-                datasets.each {pathDataset ->
+                datasets.each { pathDataset ->
                     if (pathDataset.id.contains(accursedSliceName)) {
                         pathDataset.oldId = pathDataset.id
                         pathDataset.id = pathDataset.path
@@ -127,13 +131,13 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
             [id, id.tokenize('.')]
         }
 
-        // find all dcs
+        // find all DCs
         List<String> dataClassKeys = dataItemMap
-            .findAll {key, value ->
+            .findAll { key, value ->
                 value.last() == 'id'
-            }.collect {key, value ->
-            value.findAll {it != 'id'}.join('.')
-        }
+            }.collect { key, value ->
+            value.findAll { it != 'id' }.join('.')
+        }.sort()
 
         log.debug('{} DataClasses found', dataClassKeys.size())
 
@@ -150,7 +154,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         }.each {key, value ->
             Map dataset = datasets.find {dataset -> dataset.id == key}
             DataClass parentDataClass = findParentDataClass(key, dataModel)
-            processDataElement(dataset, parentDataClass)
+            processDataElement(dataset, parentDataClass, dataModel)
             //DataClass referenceDc = dataClasses.find{it.label = value.last()}
         }
 
@@ -176,6 +180,9 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
     private void processDataClass(Map dataset, DataClass parentDataClass, DataModel dataModel) {
         DataClass dataClass = new DataClass(label: dataset.id.tokenize('.').last(), path: dataset.id, description: dataset.definition)
+        if (dataset.alias) {
+            dataClass.aliases = dataset.alias as List<String>
+        }
         dataClass.minMultiplicity = parseInt(dataset.min)
         dataClass.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
         log.debug('Created dataClass {}', dataClass.label)
@@ -187,7 +194,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         dataClass
     }
 
-    private void processDataElement(Map dataset, DataClass parentDataClass) {
+    private void processDataElement(Map dataset, DataClass parentDataClass, DataModel dataModel) {
         if (!parentDataClass) {
             // There seem to some odd entries which have no parent, looking at the JSON they seem to be coded under a different ID as well,
             // so seems safe to exclude
@@ -195,6 +202,16 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
             return
         }
         DataElement dataElement = new DataElement(label: dataset.id.tokenize('.').last(), path: dataset.id, description: dataset.definition)
+        if (dataset.alias) {
+            dataElement.aliases = dataset.alias as List<String>
+        }
+        String dTLabel = dataset.type ? dataset.type.code.get(0) : dataset.contentReference
+        PrimitiveType pt = dataModel.dataTypes.find { it.label == dTLabel }
+        if (!pt) {
+            pt = new PrimitiveType(label: dTLabel)
+            dataModel.addToPrimitiveTypes(pt)
+        }
+        dataElement.dataType = pt
         dataElement.minMultiplicity = parseInt(dataset.min)
         dataElement.maxMultiplicity = parseInt((dataset.max == '*' ? -1 : dataset.max))
         log.debug('Created dataElement {}', dataElement.label)

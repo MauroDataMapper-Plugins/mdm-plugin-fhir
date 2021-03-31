@@ -1,0 +1,8 @@
+model {
+    Map<String, Object> mappingMap
+}
+
+json {
+    map mappingMap.find { it.key == 'map' }.value
+    identity mappingMap.find { it.key == 'identity' }.value
+}
