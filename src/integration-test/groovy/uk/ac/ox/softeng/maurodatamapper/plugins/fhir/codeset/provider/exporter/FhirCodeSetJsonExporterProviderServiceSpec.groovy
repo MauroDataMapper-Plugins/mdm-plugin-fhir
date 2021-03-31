@@ -128,7 +128,7 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
         )
 
         when: 'the CodeSet is imported from Json'
-        CodeSet imported = fhirCodeSetImporterProviderService.importModel(admin, parameters)
+        CodeSet imported = fhirCodeSetImporterProviderService.importDomain(admin, parameters)
         
         then: 'it is imported with the correct label'
         imported
@@ -150,7 +150,7 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
         )
 
         when: 'the codeset is reimported from the export'
-        CodeSet reImported = fhirCodeSetImporterProviderService.importModel(admin, reParameters)
+        CodeSet reImported = fhirCodeSetImporterProviderService.importDomain(admin, reParameters)
 
         then:
         reImported
@@ -158,8 +158,9 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
         when: 'differences between the import and reimport are determined'
         ObjectDiff od = codeSetService.getDiffForModels(imported, reImported)
 
-        then: 'there are no differences'
-        od.getNumberOfDiffs() == 0
+        then: 'there is one difference'
+        od.getNumberOfDiffs() == 1
+        od.toString() == "Left:Unsaved_CodeSet <> Right:Unsaved_CodeSet :: 1 differences\n  label :: ${testName} <> ${testName}_exported"
 
         where:
         testName << [

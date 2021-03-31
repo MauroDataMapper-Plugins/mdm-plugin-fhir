@@ -109,7 +109,7 @@ class FhirTerminologyJsonExporterServiceSpec extends BaseFunctionalSpec implemen
         )
 
         when: 'the Terminology is imported from Json'
-        Terminology imported = fhirTerminologyImporterProviderService.importModel(admin, parameters)
+        Terminology imported = fhirTerminologyImporterProviderService.importDomain(admin, parameters)
         
         then: 'it is imported with the correct label'
         imported
@@ -131,7 +131,7 @@ class FhirTerminologyJsonExporterServiceSpec extends BaseFunctionalSpec implemen
         )
 
         when: 'the terminology is reimported from the export'
-        Terminology reImported = fhirTerminologyImporterProviderService.importModel(admin, reParameters)
+        Terminology reImported = fhirTerminologyImporterProviderService.importDomain(admin, reParameters)
 
         then:
         reImported
@@ -139,8 +139,9 @@ class FhirTerminologyJsonExporterServiceSpec extends BaseFunctionalSpec implemen
         when: 'differences between the import and reimport are determined'
         ObjectDiff od = terminologyService.getDiffForModels(imported, reImported)
 
-        then: 'there are no differences'
-        od.getNumberOfDiffs() == 0
+        then: 'there is one difference'
+        od.getNumberOfDiffs() == 1
+        od.toString() == "Left:Unsaved_Terminology <> Right:Unsaved_Terminology :: 1 differences\n  label :: ${testName} <> ${testName}_exported"
 
         where:
         testName << [
