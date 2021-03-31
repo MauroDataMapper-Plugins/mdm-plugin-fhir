@@ -33,11 +33,14 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
+import java.time.OffsetDateTime
+
 @Slf4j
 class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters>
     implements MetadataHandling {
 
-    private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'alias', 'snapshot', 'differential']
+    private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'alias', 'publisher', 'snapshot',
+                                                     'differential']
 
     @Autowired
     ApplicationContext applicationContext
@@ -60,6 +63,20 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     @Override
     Boolean canImportMultipleDomains() {
         true
+    }
+
+    @Override
+    DataModel updateImportedModelFromParameters(DataModel importedModel, FhirDataModelImporterProviderServiceParameters params, boolean list) {
+        if (params.finalised != null) importedModel.finalised = params.finalised
+        if (params.author) importedModel.author = params.author
+        if (params.description) importedModel.description = params.description
+        if (importedModel.metadata.find { it.key == 'status' }.value == 'active') {
+            importedModel.finalised = true
+            importedModel.dateFinalised = importedModel.metadata.find { it.key == 'date' }.value as OffsetDateTime
+            importedModel.version = importedModel.metadata.find { it.key == 'version' }.value as Long
+        }
+        importedModel
+        return super.updateImportedModelFromParameters(importedModel, params, list)
     }
 
     @Override
@@ -103,7 +120,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         //log.trace('JSON\n{}', new JsonBuilder(data).toPrettyString())
 
         //dataModel initialisation
-        DataModel dataModel = new DataModel(label: dataModelName, description: data.description)
+        DataModel dataModel = new DataModel(label: dataModelName, description: data.description, organisation: data.publisher)
         if (data.alias) {
             dataModel.aliases = data.alias as List<String>
         }

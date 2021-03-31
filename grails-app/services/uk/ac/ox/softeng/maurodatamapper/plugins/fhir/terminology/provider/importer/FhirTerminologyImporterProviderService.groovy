@@ -34,7 +34,7 @@ import org.springframework.context.ApplicationContext
 class FhirTerminologyImporterProviderService extends TerminologyImporterProviderService<FhirTerminologyImporterProviderServiceParameters>
     implements MetadataHandling {
 
-    private static List<String> TERMINOLOGY_NON_METADATA_KEYS = ['id', 'name', 'description', 'concept']
+    private static List<String> TERMINOLOGY_NON_METADATA_KEYS = ['id', 'name', 'description', 'publisher', 'concept']
     private static List<String> TERM_NON_METADATA_KEYS = ['code', 'definition', 'display']
 
     TerminologyService terminologyService
@@ -101,7 +101,7 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getCodeSystemEntry(terminologyName)
 
-        Terminology terminology = new Terminology(label: data.id, description: data.description, aliases: [data.name])
+        Terminology terminology = new Terminology(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
         processMetadata(data, terminology, namespace, TERMINOLOGY_NON_METADATA_KEYS)
 
         data.concept.each {Map concept ->

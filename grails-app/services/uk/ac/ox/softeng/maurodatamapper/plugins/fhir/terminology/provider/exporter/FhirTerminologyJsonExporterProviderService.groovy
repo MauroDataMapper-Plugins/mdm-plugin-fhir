@@ -18,12 +18,12 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiException
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
+import uk.ac.ox.softeng.maurodatamapper.core.provider.exporter.TemplateBasedExporter
 import uk.ac.ox.softeng.maurodatamapper.security.User
-import uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter.TerminologyExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-
+import uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter.TerminologyExporterProviderService
 
 import grails.plugin.json.view.JsonViewTemplateEngine
 import groovy.text.Template
@@ -56,6 +56,10 @@ class FhirTerminologyJsonExporterProviderService extends TerminologyExporterProv
 
     @Override
     ByteArrayOutputStream exportTerminology(User currentUser, Terminology terminology) throws ApiException {
+        exportModel(terminology, fileType)
+    }
+
+    ByteArrayOutputStream exportModel(Terminology terminology, String format) {
         Template template = templateEngine.resolveTemplate(exportViewPath)
 
         if (!template) {
@@ -63,7 +67,7 @@ class FhirTerminologyJsonExporterProviderService extends TerminologyExporterProv
             throw new ApiInternalException('TBE02', "Could not find template for format ${format} at path ${exportViewPath}")
         }
 
-        def writable = template.make(export: terminology)
+        def writable = template.make(terminology: terminology)
         def sw = new StringWriter()
         writable.writeTo(sw)
         ByteArrayOutputStream os = new ByteArrayOutputStream()
@@ -78,5 +82,5 @@ class FhirTerminologyJsonExporterProviderService extends TerminologyExporterProv
 
     String getExportViewPath() {
         '/codeSystem/export'
-    }   
+    }
 }

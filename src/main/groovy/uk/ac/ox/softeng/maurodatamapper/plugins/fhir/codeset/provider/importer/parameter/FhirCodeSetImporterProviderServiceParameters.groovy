@@ -63,4 +63,24 @@ class FhirCodeSetImporterProviderServiceParameters extends CodeSetImporterProvid
             order = -1
         ))
     String modelName
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    Boolean finalised = false
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    String description
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    String author
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    String organisation
 }

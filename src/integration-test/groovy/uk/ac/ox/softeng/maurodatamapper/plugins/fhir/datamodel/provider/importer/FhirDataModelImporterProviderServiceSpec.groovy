@@ -118,7 +118,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         dataModel.label == entryId
 
         dataModel.dataClasses.size() == 13
-        dataModel.metadata.size() == 19
+        dataModel.metadata.size() == 18
         dataModel.childDataClasses.size() == 1
 
         when:
@@ -278,7 +278,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         dataModel
         dataModel.label == entryId
         dataModel.dataClasses.size() == 23
-        dataModel.metadata.size() == 14
+        dataModel.metadata.size() == 13
         dataModel.childDataClasses.size() == 1
 
         when:

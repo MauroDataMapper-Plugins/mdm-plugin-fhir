@@ -20,7 +20,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporte
 import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter.FhirDataModelJsonExporterService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
@@ -34,6 +33,7 @@ import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
 import org.junit.Assert
 import spock.lang.Shared
+import spock.lang.Unroll
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -42,10 +42,10 @@ import java.nio.file.Paths
 @Integration
 @Rollback
 @Slf4j
-class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements JsonComparer {
+class FhirDataModelJsonExporterProviderServiceSpec extends BaseFunctionalSpec implements JsonComparer {
 
     FhirDataModelImporterProviderService fhirDataModelImporterProviderService
-    FhirDataModelJsonExporterService fhirDataModelJsonExporterService
+    FhirDataModelJsonExporterProviderService fhirDataModelJsonExporterProviderService
     DataModelService dataModelService
 
     @Shared
@@ -80,10 +80,10 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
         ersatz.stop()
     }
 
-    def "CC01: verify exported DataModel JSON content - CareConnect-ProcedureRequest-1"() {
+    @Unroll
+    def 'CC01: verify exported DataModel JSON content - "#entryId"'() {
         //import FHIR Json file
         given:
-        String entryId = 'CareConnect-ProcedureRequest-1'
         String exportedEntryId = "${entryId}_exported"
         String version = 'STU3'
         ersatz.expectations {
@@ -106,80 +106,52 @@ class FhirDataModelJsonExporterServiceSpec extends BaseFunctionalSpec implements
                 }
             }
         }
-
-        expect:
-        performAndValidateRoundTrip(entryId, exportedEntryId, version)
-    }
-
-    def "CC02: verify exported DataModel JSON content - CareConnect-OxygenSaturation-Observation-1"() {
-        //import FHIR Json file
-        given:
-        String entryId = 'CareConnect-OxygenSaturation-Observation-1'
-        String exportedEntryId = "${entryId}_exported"
-        String version = 'STU3'
-        ersatz.expectations {
-            GET("/$version/StructureDefinition/$entryId") {
-                query('_format', 'json')
-                called(1)
-                responder {
-                    contentType('application/json')
-                    code(200)
-                    body(loadJsonString("${entryId}.json"))
-                }
-            }
-            GET("/$version/StructureDefinition/$exportedEntryId") {
-                query('_format', 'json')
-                called(1)
-                responder {
-                    contentType('application/json')
-                    code(200)
-                    body(loadExportedJsonString("${exportedEntryId}.json"))
-                }
-            }
-        }
-
-        expect:
-        performAndValidateRoundTrip(entryId, exportedEntryId, version)
-    }
-
-    boolean performAndValidateRoundTrip(String entryId, String exportedEntryId, String version) {
         def parameters = new FhirDataModelImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
             fhirVersion: version,
             modelName: entryId
         )
-        // Import the model
-        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
-        assert imported
-        assert imported.label == entryId
 
-        //exportJSON = export dataModel into our JSON
-        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelJsonExporterService.exportDataModel(admin, imported))
+        when: 'the DataModel is imported from Json'
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+
+        then:
+        imported
+        imported.label == entryId
+
+        when: 'the imported DataModel is exported'
+        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelExporterProviderService.exportDataModel(admin, imported))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
-        assert exportedJson
-        // validate the exported json matches the expected json
+        then: 'the exported Json is correct'
+        exportedJson
         validateExportedModel(entryId, exportedJson)
 
 
-        // Import the exported JSON
         def reParameters = new FhirDataModelImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
             fhirVersion: version,
             modelName: exportedEntryId
         )
-        DataModel reImported = fhirDataModelImporterProviderService.importModel(admin, reParameters)
-        assert reImported
 
-        // Diff the 2 versions
+        when: 'the dataModel is reimported from the export'
+        DataModel reImported = fhirDataModelImporterProviderService.importModel(admin, reParameters)
+
+        then:
+        reImported
+
+        when: 'differences between the import and reimport are determined'
         ObjectDiff od = dataModelService.getDiffForModels(imported, reImported)
 
-        // As we set the model name that will be set to the exported entry
-        assert od.getNumberOfDiffs() == 1
-        assert od.diffs.first().fieldName == 'label'
-        assert od.diffs.first().left == entryId
-        assert od.diffs.first().right == exportedEntryId
-        true
+        then: 'there are no differences'
+        od.getNumberOfDiffs() == 1
+        od.toString() == "Left:Unsaved_DataModel <> Right: Unsaved_DataModel :: 1 differences\n  label :: ${entryId} <> ${entryId}_exported"
+
+        where:
+        entryId << [
+            'CareConnect-ProcedureRequest-1',
+            'CareConnect-OxygenSaturation-Observation-1'
+        ]
     }
 
     String loadJsonString(String filename) {

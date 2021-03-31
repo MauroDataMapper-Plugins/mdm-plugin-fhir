@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiException
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter.CodeSetExporterProviderService
 
 
@@ -56,6 +57,10 @@ class FhirCodeSetJsonExporterProviderService extends CodeSetExporterProviderServ
 
     @Override
     ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet) throws ApiException {
+        exportModel(codeSet, fileType)
+    }
+
+    ByteArrayOutputStream exportModel(CodeSet codeSet, String format) {
         Template template = templateEngine.resolveTemplate(exportViewPath)
 
         if (!template) {
@@ -63,7 +68,7 @@ class FhirCodeSetJsonExporterProviderService extends CodeSetExporterProviderServ
             throw new ApiInternalException('CSE02', "Could not find template for format ${format} at path ${exportViewPath}")
         }
 
-        def writable = template.make(export: codeSet)
+        def writable = template.make(codeSet: codeSet)
         def sw = new StringWriter()
         writable.writeTo(sw)
         ByteArrayOutputStream os = new ByteArrayOutputStream()

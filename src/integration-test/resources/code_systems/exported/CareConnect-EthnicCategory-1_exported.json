@@ -9,285 +9,286 @@
   ],
   "url": "https://fhir.nhs.uk/STU3/CodeSystem/CareConnect-EthnicCategory-1",
   "version": "1.0.0",
-  "name": "Care Connect Ethnic Category",
+  "name": null,
   "status": "active",
   "date": "2017-11-22T00:00:00+00:00",
   "publisher": "HL7 UK",
-  "description": "A CodeSystem to identify the ethnicity of a Person, as specified by the Person. This vocabulary describes a persons ethnic category, it is an extension of the Ethnic Category Code described in the NHS Data Model and Dictionary.",
-  "caseSensitive": true,
+  "description": null,
+  "copyright": null,
+  "caseSensitive": "true",
   "content": "complete",
   "concept": [
     {
       "code": "A",
-      "display": "British, Mixed British"
+      "definition": "British, Mixed British"
     },
     {
       "code": "B",
-      "display": "Irish"
+      "definition": "Irish"
     },
     {
       "code": "C",
-      "display": "Any other White background"
+      "definition": "Any other White background"
     },
     {
       "code": "C2",
-      "display": "Northern Irish"
+      "definition": "Northern Irish"
     },
     {
       "code": "C3",
-      "display": "Other white, white unspecified"
+      "definition": "Other white, white unspecified"
     },
     {
       "code": "CA",
-      "display": "English"
+      "definition": "English"
     },
     {
       "code": "CB",
-      "display": "Scottish"
+      "definition": "Scottish"
     },
     {
       "code": "CC",
-      "display": "Welsh"
+      "definition": "Welsh"
     },
     {
       "code": "CD",
-      "display": "Cornish"
+      "definition": "Cornish"
     },
     {
       "code": "CE",
-      "display": "Cypriot (part not stated)"
+      "definition": "Cypriot (part not stated)"
     },
     {
       "code": "CF",
-      "display": "Greek"
+      "definition": "Greek"
     },
     {
       "code": "CG",
-      "display": "Greek Cypriot"
+      "definition": "Greek Cypriot"
     },
     {
       "code": "CH",
-      "display": "Turkish"
+      "definition": "Turkish"
     },
     {
       "code": "CJ",
-      "display": "Turkish Cypriot"
+      "definition": "Turkish Cypriot"
     },
     {
       "code": "CK",
-      "display": "Italian"
+      "definition": "Italian"
     },
     {
       "code": "CL",
-      "display": "Irish Traveller"
+      "definition": "Irish Traveller"
     },
     {
       "code": "CM",
-      "display": "Traveller"
+      "definition": "Traveller"
     },
     {
       "code": "CN",
-      "display": "Gypsy/Romany"
+      "definition": "Gypsy/Romany"
     },
     {
       "code": "CP",
-      "display": "Polish"
+      "definition": "Polish"
     },
     {
       "code": "CQ",
-      "display": "All republics which made up the former USSR"
+      "definition": "All republics which made up the former USSR"
     },
     {
       "code": "CR",
-      "display": "Kosovan"
+      "definition": "Kosovan"
     },
     {
       "code": "CS",
-      "display": "Albanian"
+      "definition": "Albanian"
     },
     {
       "code": "CT",
-      "display": "Bosnian"
+      "definition": "Bosnian"
     },
     {
       "code": "CU",
-      "display": "Croatian"
+      "definition": "Croatian"
     },
     {
       "code": "CV",
-      "display": "Serbian"
+      "definition": "Serbian"
     },
     {
       "code": "CW",
-      "display": "Other republics which made up the former Yugoslavia"
+      "definition": "Other republics which made up the former Yugoslavia"
     },
     {
       "code": "CX",
-      "display": "Mixed white"
+      "definition": "Mixed white"
     },
     {
       "code": "CY",
-      "display": "Other white European, European unspecified, European mixed"
+      "definition": "Other white European, European unspecified, European mixed"
     },
     {
       "code": "D",
-      "display": "White and Black Caribbean"
+      "definition": "White and Black Caribbean"
     },
     {
       "code": "E",
-      "display": "White and Black African"
+      "definition": "White and Black African"
     },
     {
       "code": "F",
-      "display": "White and Asian"
+      "definition": "White and Asian"
     },
     {
       "code": "G",
-      "display": "Any other mixed background"
+      "definition": "Any other mixed background"
     },
     {
       "code": "GA",
-      "display": "Black and Asian"
+      "definition": "Black and Asian"
     },
     {
       "code": "GB",
-      "display": "Black and Chinese"
+      "definition": "Black and Chinese"
     },
     {
       "code": "GC",
-      "display": "Black and White"
+      "definition": "Black and White"
     },
     {
       "code": "GD",
-      "display": "Chinese and White"
+      "definition": "Chinese and White"
     },
     {
       "code": "GE",
-      "display": "Asian and Chinese"
+      "definition": "Asian and Chinese"
     },
     {
       "code": "GF",
-      "display": "Other Mixed, Mixed Unspecified"
+      "definition": "Other Mixed, Mixed Unspecified"
     },
     {
       "code": "H",
-      "display": "Indian or British Indian"
+      "definition": "Indian or British Indian"
     },
     {
       "code": "J",
-      "display": "Pakistani or British Pakistani"
+      "definition": "Pakistani or British Pakistani"
     },
     {
       "code": "K",
-      "display": "Bangladeshi or British Bangladeshi"
+      "definition": "Bangladeshi or British Bangladeshi"
     },
     {
       "code": "L",
-      "display": "Any other Asian background"
+      "definition": "Any other Asian background"
     },
     {
       "code": "LA",
-      "display": "Mixed Asian"
+      "definition": "Mixed Asian"
     },
     {
       "code": "LB",
-      "display": "Punjabi"
+      "definition": "Punjabi"
     },
     {
       "code": "LC",
-      "display": "Kashmiri"
+      "definition": "Kashmiri"
     },
     {
       "code": "LD",
-      "display": "East African Asian"
+      "definition": "East African Asian"
     },
     {
       "code": "LE",
-      "display": "Sri Lanka"
+      "definition": "Sri Lanka"
     },
     {
       "code": "LF",
-      "display": "Tamil"
+      "definition": "Tamil"
     },
     {
       "code": "LG",
-      "display": "Sinhalese"
+      "definition": "Sinhalese"
     },
     {
       "code": "LH",
-      "display": "British Asian"
+      "definition": "British Asian"
     },
     {
       "code": "LJ",
-      "display": "Caribbean Asian"
+      "definition": "Caribbean Asian"
     },
     {
       "code": "LK",
-      "display": "Other Asian, Asian unspecified"
+      "definition": "Other Asian, Asian unspecified"
     },
     {
       "code": "M",
-      "display": "Caribbean"
+      "definition": "Caribbean"
     },
     {
       "code": "N",
-      "display": "African"
+      "definition": "African"
     },
     {
       "code": "P",
-      "display": "Any other Black background"
+      "definition": "Any other Black background"
     },
     {
       "code": "PA",
-      "display": "Somali"
+      "definition": "Somali"
     },
     {
       "code": "PB",
-      "display": "Mixed Black"
+      "definition": "Mixed Black"
     },
     {
       "code": "PC",
-      "display": "Nigerian"
+      "definition": "Nigerian"
     },
     {
       "code": "PD",
-      "display": "Black British"
+      "definition": "Black British"
     },
     {
       "code": "PE",
-      "display": "Other Black, Black unspecified"
+      "definition": "Other Black, Black unspecified"
     },
     {
       "code": "R",
-      "display": "Chinese"
+      "definition": "Chinese"
     },
     {
       "code": "S",
-      "display": "Any other ethnic group"
+      "definition": "Any other ethnic group"
     },
     {
       "code": "SA",
-      "display": "Vietnamese"
+      "definition": "Vietnamese"
     },
     {
       "code": "SB",
-      "display": "Japanese"
+      "definition": "Japanese"
     },
     {
       "code": "SC",
-      "display": "Filipino"
+      "definition": "Filipino"
     },
     {
       "code": "SD",
-      "display": "Malaysian"
+      "definition": "Malaysian"
     },
     {
       "code": "SE",
-      "display": "Any Other Group"
+      "definition": "Any Other Group"
     },
     {
       "code": "Z",
-      "display": "Not stated"
+      "definition": "Not stated"
     }
   ]
 }

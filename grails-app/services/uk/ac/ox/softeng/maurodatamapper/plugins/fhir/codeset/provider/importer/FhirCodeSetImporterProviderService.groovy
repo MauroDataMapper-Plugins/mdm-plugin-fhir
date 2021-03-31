@@ -39,7 +39,7 @@ import org.springframework.context.ApplicationContext
 class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<FhirCodeSetImporterProviderServiceParameters>
     implements MetadataHandling {
 
-    private static List<String> NON_METADATA_KEYS = ['containd', 'id', 'name', 'description', 'codeSystem', 'compose']
+    private static List<String> NON_METADATA_KEYS = ['contains', 'id', 'name', 'description', 'publisher', 'codeSystem', 'compose']
 
     TerminologyService terminologyService
 
@@ -106,7 +106,7 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
         Map<String, Object> data = fhirServerClient.getValueSetEntry(codeSetName)
 
 
-        CodeSet codeSet = new CodeSet(label: data.id, description: data.description, aliases: [data.name])
+        CodeSet codeSet = new CodeSet(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
         processMetadata(data, codeSet, namespace, NON_METADATA_KEYS)
 
         // TODO provide addtl param to import terminology if its not found

@@ -84,7 +84,7 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
     void setupDomainData() {
         folder = new Folder(label: 'catalogue', createdBy: StandardEmailAddress.INTEGRATION_TEST)
         checkAndSave(folder)
-        // Do not need to actually import SNOMED. We need to create an empty terminology as we;re creating filter rules
+        // Do not need to actually import SNOMED. We need to create an empty terminology as we're creating filter rules
         Terminology snomedCt = new Terminology(label: 'SNOMED CT January 2018 International Edition',
                                                createdBy: StandardEmailAddress.INTEGRATION_TEST,
                                                authority: authorityService.getDefaultAuthority(),
@@ -151,7 +151,7 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         codeSet
-        codeSet.metadata.size() == 7
+        codeSet.metadata.size() == 6
         !codeSet.terms
         codeSet.rules.size() == 1
         codeSet.rules.first().name == 'SNOMED CT January 2018 International Edition filter'
@@ -189,7 +189,7 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         codeSet
-        codeSet.metadata.size() == 7
+        codeSet.metadata.size() == 6
         codeSet.terms.size() == 6
     }
 
@@ -221,7 +221,7 @@ class FhirCodeSetImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         codeSet
-        codeSet.metadata.size() == 11
+        codeSet.metadata.size() == 10
         codeSet.terms.size() == 68
     }
 

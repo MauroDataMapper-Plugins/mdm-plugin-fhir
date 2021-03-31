@@ -12,11 +12,19 @@ json {
     resourceType fhirMetadata.resourceType
     id dataModel.label
     url fhirMetadata.url
-    version fhirMetadata.version
+    if (fhirMetadata.version) {
+        version fhirMetadata.version
+    } else if (dataModel.version) {
+        version dataModel.version
+    }
     name fhirMetadata.name
     status fhirMetadata.status
-    date fhirMetadata.date
-    publisher fhirMetadata.publisher
+    if (fhirMetadata.date) {
+        date fhirMetadata.date
+    } else if (dataModel.dateFinalised) {
+        date dataModel.dateFinalised
+    }
+    publisher dataModel.organisation
 
     if (fhirMetadata.any { it.key.startsWith('contact') }) {
         Map<String, Object> contactInfo = fhirMetadata.findAll { it.key.startsWith('contact') }

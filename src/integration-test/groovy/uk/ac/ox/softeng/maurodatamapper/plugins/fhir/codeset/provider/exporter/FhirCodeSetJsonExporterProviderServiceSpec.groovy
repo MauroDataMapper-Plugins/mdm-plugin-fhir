@@ -63,6 +63,9 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
     Path resourcesPath
 
     @Shared
+    Path exportedResourcesPath
+
+    @Shared
     Path terminologyResourcesPath    
 
     @OnceBefore
@@ -72,6 +75,9 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
 
         terminologyResourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()            
+        exportedResourcesPath =
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'value_sets', 'exported')
+                .toAbsolutePath()
         ersatz = new ErsatzServer()
     }
 
@@ -93,11 +99,10 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
     }    
 
     @Unroll
-    def 'CC01: verify exported CodeSet JSON content - "#testName"'() {
+    def 'CC01: verify exported CodeSet JSON content - "#entryId"'() {
         //import FHIR Json file
         given:
         setupDomainData()
-        String entryId = testName
         String exportedEntryId = "${entryId}_exported"
         String version = 'STU3'
         importTerminology(entryId)
@@ -117,7 +122,7 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
                 responder {
                     contentType('application/json')
                     code(200)
-                    body(loadJsonString("${exportedEntryId}.json"))
+                    body(loadExportedJsonString("${exportedEntryId}.json"))
                 }
             }
         }
@@ -158,12 +163,11 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
         when: 'differences between the import and reimport are determined'
         ObjectDiff od = codeSetService.getDiffForModels(imported, reImported)
 
-        then: 'there is one difference'
-        od.getNumberOfDiffs() == 1
-        od.toString() == "Left:Unsaved_CodeSet <> Right:Unsaved_CodeSet :: 1 differences\n  label :: ${testName} <> ${testName}_exported"
+        then: 'there are no differences'
+        od.getNumberOfDiffs() == 0
 
         where:
-        testName << [
+        entryId << [
             'CareConnect-ConditionCategory-1',
             'CareConnect-EthnicCategory-1'
         ]
@@ -175,6 +179,11 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
         Files.readString(testFilePath)
     }
 
+    String loadExportedJsonString(String filename) {
+        Path testFilePath = exportedResourcesPath.resolve("${filename}").toAbsolutePath()
+        Files.exists(testFilePath) ? Files.readString(testFilePath) : ''
+    }
+
     String loadTerminologyJsonString(String filename) {
         Path testFilePath = terminologyResourcesPath.resolve("${filename}").toAbsolutePath()
         assert Files.exists(testFilePath)
@@ -184,8 +193,9 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
     void validateExportedModel(String entryId, String exportedModel) {
         assert exportedModel, 'There must be an exported model string'
 
-        Path expectedPath = resourcesPath.resolve("${entryId}_exported.json")
+        Path expectedPath = exportedResourcesPath.resolve("${entryId}_exported.json")
         if (!Files.exists(expectedPath)) {
+            Files.write(expectedPath, exportedModel.bytes)
             Assert.fail("Expected export file ${expectedPath} does not exist")
         }
 

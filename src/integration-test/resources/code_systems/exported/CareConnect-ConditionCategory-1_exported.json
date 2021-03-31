@@ -3,38 +3,38 @@
   "id": "CareConnect-ConditionCategory-1",
   "url": "https://fhir.nhs.uk/STU3/CodeSystem/CareConnect-ConditionCategory-1",
   "version": "1.0.0",
-  "name": "Care Connect Condition Category",
+  "name": null,
   "status": "draft",
   "date": "2017-08-01T00:00:00+00:00",
   "publisher": "HL7 UK",
-  "description": "A CodeSystem to identify the category of a condition.",
+  "description": null,
   "copyright": "Copyright © 2016 HL7 UK",
-  "caseSensitive": true,
+  "caseSensitive": "true",
   "content": "complete",
   "concept": [
     {
       "code": "complaint",
-      "display": "Complaint"
+      "definition": "Complaint"
     },
     {
       "code": "symptom",
-      "display": "Symptom"
+      "definition": "Symptom"
     },
     {
       "code": "finding",
-      "display": "Finding"
+      "definition": "Finding"
     },
     {
       "code": "diagnosis",
-      "display": "Diagnosis"
+      "definition": "Diagnosis"
     },
     {
       "code": "problem",
-      "display": "Problem"
+      "definition": "Problem"
     },
     {
       "code": "need",
-      "display": "Need"
+      "definition": "Need"
     }
   ]
 }

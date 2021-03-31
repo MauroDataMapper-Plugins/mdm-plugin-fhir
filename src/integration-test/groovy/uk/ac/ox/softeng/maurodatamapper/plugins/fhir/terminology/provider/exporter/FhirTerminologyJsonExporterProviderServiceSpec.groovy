@@ -52,10 +52,17 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
     @Shared
     Path resourcesPath
 
+    @Shared
+    Path exportedResourcesPath
+
     @OnceBefore
     void setupServerClient() {
         resourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()
+        exportedResourcesPath =
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems', 'exported')
+                .toAbsolutePath()
+
         ersatz = new ErsatzServer()
     }
 
@@ -76,10 +83,9 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
     }
 
     @Unroll
-    def 'CC01: verify exported Terminology JSON content - "#testName"'() {
+    def 'CC01: verify exported Terminology JSON content - "#entryId"'() {
         //import FHIR Json file
         given:
-        String entryId = testName
         String exportedEntryId = "${entryId}_exported"
         String version = 'STU3'
         ersatz.expectations {
@@ -98,7 +104,7 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
                 responder {
                     contentType('application/json')
                     code(200)
-                    body(loadJsonString("${exportedEntryId}.json"))
+                    body(loadExportedJsonString("${exportedEntryId}.json"))
                 }
             }
         }
@@ -110,7 +116,7 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
 
         when: 'the Terminology is imported from Json'
         Terminology imported = fhirTerminologyImporterProviderService.importDomain(admin, parameters)
-        
+
         then: 'it is imported with the correct label'
         imported
         imported.label == entryId
@@ -139,12 +145,11 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
         when: 'differences between the import and reimport are determined'
         ObjectDiff od = terminologyService.getDiffForModels(imported, reImported)
 
-        then: 'there is one difference'
-        od.getNumberOfDiffs() == 1
-        od.toString() == "Left:Unsaved_Terminology <> Right:Unsaved_Terminology :: 1 differences\n  label :: ${testName} <> ${testName}_exported"
+        then: 'there are no differences'
+        od.getNumberOfDiffs() == 0
 
         where:
-        testName << [
+        entryId << [
             'CareConnect-ConditionCategory-1',
             'CareConnect-EthnicCategory-1',
             'CareConnect-HumanLanguage-1'
@@ -157,12 +162,17 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
         Files.readString(testFilePath)
     }
 
+    String loadExportedJsonString(String filename) {
+        Path testFilePath = exportedResourcesPath.resolve("${filename}").toAbsolutePath()
+        Files.exists(testFilePath) ? Files.readString(testFilePath) : ''
+    }
+
     void validateExportedModel(String entryId, String exportedModel) {
         assert exportedModel, 'There must be an exported model string'
 
-        Path expectedPath = resourcesPath.resolve("${entryId}_exported.json")
+        Path expectedPath = exportedResourcesPath.resolve("${entryId}_exported.json")
         if (!Files.exists(expectedPath)) {
-            //Files.write(expectedPath, exportedModel.bytes)
+            Files.write(expectedPath, exportedModel.bytes)
             Assert.fail("Expected export file ${expectedPath} does not exist")
         }
 
