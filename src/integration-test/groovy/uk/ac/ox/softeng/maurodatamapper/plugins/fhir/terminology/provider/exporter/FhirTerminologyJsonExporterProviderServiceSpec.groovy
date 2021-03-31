@@ -20,7 +20,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.expor
 import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter.FhirTerminologyJsonExporterService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter.FhirTerminologyJsonExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
@@ -43,10 +43,10 @@ import java.nio.file.Paths
 @Integration
 @Rollback
 @Slf4j
-class FhirTerminologyJsonExporterServiceSpec extends BaseFunctionalSpec implements JsonComparer {
+class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec implements JsonComparer {
 
     FhirTerminologyImporterProviderService fhirTerminologyImporterProviderService
-    FhirTerminologyJsonExporterService fhirTerminologyJsonExporterService
+    FhirTerminologyJsonExporterProviderService fhirTerminologyJsonExporterProviderService
     TerminologyService terminologyService
 
     @Shared
@@ -116,7 +116,7 @@ class FhirTerminologyJsonExporterServiceSpec extends BaseFunctionalSpec implemen
         imported.label == entryId
 
         when: 'the imported Terminology is exported'
-        ByteArrayOutputStream exportedJsonBytes = (fhirTerminologyJsonExporterService.exportTerminology(admin, imported))
+        ByteArrayOutputStream exportedJsonBytes = (fhirTerminologyJsonExporterProviderService.exportTerminology(admin, imported))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then: 'the exported Json is correct'
