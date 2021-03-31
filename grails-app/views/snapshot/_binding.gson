@@ -2,8 +2,6 @@ model {
     Map<String, Object> bindingMap
 }
 
-//log.warn("${binding.variables}")
-
 json {
     strength bindingMap.find { it.key == 'strength' }.value
     description bindingMap.find { it.key == 'description' }.value

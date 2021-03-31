@@ -2,8 +2,6 @@ model {
     Map<String, Object> extensionMap
 }
 
-//log.warn("${binding.variables}")
-
 json {
     url extensionMap.find { it.key == 'url' }.value
 

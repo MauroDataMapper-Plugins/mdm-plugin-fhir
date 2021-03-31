@@ -2,8 +2,6 @@ model {
     Map<String, Object> constraintMap
 }
 
-//log.warn("${binding.variables}")
-
 json {
     key constraintMap.find { it.key == 'key' }.value
     severity constraintMap.find { it.key == 'severity' }.value

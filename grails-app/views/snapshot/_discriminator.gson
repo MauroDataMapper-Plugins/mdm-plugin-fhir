@@ -2,8 +2,6 @@ model {
     Map<String, Object> discriminatorMap
 }
 
-//log.warn("${binding.variables}")
-
 json {
     type discriminatorMap.type
     path discriminatorMap.path

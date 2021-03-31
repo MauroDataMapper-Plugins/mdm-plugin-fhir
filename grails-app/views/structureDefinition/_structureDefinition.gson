@@ -5,8 +5,6 @@ model {
     DataModel dataModel
 }
 
-//log.warn("${binding.variables}")
-
 json {
     Map<String, Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer')
         .collectEntries { md -> [md.key, md.value] }

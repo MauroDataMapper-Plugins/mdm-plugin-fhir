@@ -2,8 +2,6 @@ model {
     Map<String, Object> exampleMap
 }
 
-//log.warn("${binding.variables}")
-
 json {
     label exampleMap.label
     if (exampleMap.any { it.key == 'valueString' }) {

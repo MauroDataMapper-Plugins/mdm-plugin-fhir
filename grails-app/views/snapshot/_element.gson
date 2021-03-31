@@ -7,8 +7,6 @@ model {
     ModelItem modelItem
 }
 
-//log.warn("${binding.variables}")
-
 static String buildId(ModelItem modelItem) {
     if (modelItem instanceof DataClass) {
         DataClass dc = modelItem as DataClass

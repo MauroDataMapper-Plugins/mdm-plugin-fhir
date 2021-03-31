@@ -2,8 +2,6 @@ model {
     Map<String,Object> contactMap
 }
 
-log.warn("${binding.variables}")
-
 json {
 
     if (contactMap.any { it.key.startsWith('telecom') }) {

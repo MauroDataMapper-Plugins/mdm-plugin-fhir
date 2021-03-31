@@ -2,8 +2,6 @@ model {
     Map<String, Object> slicingMap
 }
 
-//log.warn("${binding.variables}")
-
 json {
     rules slicingMap.find { it.key == 'rules' }.value
     if (slicingMap.any { it.key == 'description' }) {

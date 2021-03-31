@@ -2,8 +2,6 @@ model {
     Map<String,Object> telecomMap
 }
 
-log.warn("${binding.variables}")
-
 json {
 
     system telecomMap.find { it.key == 'system' }.value

@@ -2,8 +2,6 @@ model {
     Map<String, Object> baseMap
 }
 
-//log.warn("${binding.variables}")
-
 json {
     path baseMap.find { it.key == 'path' }.value
     min baseMap.find { it.key == 'min' }.value
