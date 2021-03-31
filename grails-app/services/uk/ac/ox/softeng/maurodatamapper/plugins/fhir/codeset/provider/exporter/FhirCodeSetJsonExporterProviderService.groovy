@@ -29,7 +29,7 @@ import grails.plugin.json.view.JsonViewTemplateEngine
 import groovy.text.Template
 import org.springframework.beans.factory.annotation.Autowired
 
-class FhirCodeSetJsonExporterService extends CodeSetExporterProviderService {
+class FhirCodeSetJsonExporterProviderService extends CodeSetExporterProviderService {
 
     @Autowired
     JsonViewTemplateEngine templateEngine
@@ -77,6 +77,6 @@ class FhirCodeSetJsonExporterService extends CodeSetExporterProviderService {
     }
 
     String getExportViewPath() {
-        '/fhirExport/exportCodeSetAsFhirValueSet'
+        '/valueSet/export'
     }   
 }

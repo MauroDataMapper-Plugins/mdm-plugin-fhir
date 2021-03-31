@@ -106,7 +106,7 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
         Map<String, Object> data = fhirServerClient.getValueSetEntry(codeSetName)
 
 
-        CodeSet codeSet = new CodeSet(label: data.id, description: data.descripton, aliases: [data.name])
+        CodeSet codeSet = new CodeSet(label: data.id, description: data.description, aliases: [data.name])
         processMetadata(data, codeSet, namespace, NON_METADATA_KEYS)
 
         // TODO provide addtl param to import terminology if its not found

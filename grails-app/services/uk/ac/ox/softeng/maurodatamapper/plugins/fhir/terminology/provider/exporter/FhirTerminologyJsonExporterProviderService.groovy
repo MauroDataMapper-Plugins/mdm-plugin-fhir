@@ -29,7 +29,7 @@ import grails.plugin.json.view.JsonViewTemplateEngine
 import groovy.text.Template
 import org.springframework.beans.factory.annotation.Autowired
 
-class FhirTerminologyJsonExporterService extends TerminologyExporterProviderService {
+class FhirTerminologyJsonExporterProviderService extends TerminologyExporterProviderService {
 
     @Autowired
     JsonViewTemplateEngine templateEngine
@@ -77,6 +77,6 @@ class FhirTerminologyJsonExporterService extends TerminologyExporterProviderServ
     }
 
     String getExportViewPath() {
-        '/fhirExport/exportTerminologyAsFhirCodeSystem'
+        '/codeSystem/export'
     }   
 }

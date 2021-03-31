@@ -1,0 +1,9 @@
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+
+model {
+    Collection<Terminology> terminologies
+}
+
+json {
+    include tmpl.include(terminologies)
+}
