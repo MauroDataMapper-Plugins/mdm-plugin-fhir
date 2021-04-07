@@ -15,21 +15,20 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
-import uk.ac.ox.softeng.maurodatamapper.core.provider.exporter.TemplateBasedExporter
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.exporter.DataModelExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.provider.exporter.CodeSetExporterProviderService
 
 import grails.plugin.json.view.JsonViewTemplateEngine
 import groovy.text.Template
 import org.springframework.beans.factory.annotation.Autowired
 
-class FhirDataModelJsonExporterProviderService extends DataModelExporterProviderService implements TemplateBasedExporter {
+class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService {
 
     @Autowired
     JsonViewTemplateEngine templateEngine
@@ -46,7 +45,7 @@ class FhirDataModelJsonExporterProviderService extends DataModelExporterProvider
 
     @Override
     String getDisplayName() {
-        'JSON FHIR Server DataModel Exporter'
+        'FHIR ValueSet (CodeSet) JSON Exporter'
     }
 
     @Override
@@ -55,24 +54,19 @@ class FhirDataModelJsonExporterProviderService extends DataModelExporterProvider
     }
 
     @Override
-    String getExportViewPath() {
-        '/structureDefinition/export'
+    ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet) throws ApiException {
+        exportModel(codeSet, fileType)
     }
 
-    @Override
-    ByteArrayOutputStream exportDataModel(User currentUser, DataModel dataModel) throws ApiException {
-        exportModel(dataModel, fileType)
-    }
-
-    ByteArrayOutputStream exportModel(DataModel dataModel, String format) {
+    ByteArrayOutputStream exportModel(CodeSet codeSet, String format) {
         Template template = templateEngine.resolveTemplate(exportViewPath)
 
         if (!template) {
             log.error('Could not find template for format {} at path {}', format, exportViewPath)
-            throw new ApiInternalException('TBE02', "Could not find template for format ${format} at path ${exportViewPath}")
+            throw new ApiInternalException('CSE02', "Could not find template for format ${format} at path ${exportViewPath}")
         }
 
-        def writable = template.make(dataModel: dataModel)
+        def writable = template.make(codeSet: codeSet)
         def sw = new StringWriter()
         writable.writeTo(sw)
         ByteArrayOutputStream os = new ByteArrayOutputStream()
@@ -81,7 +75,11 @@ class FhirDataModelJsonExporterProviderService extends DataModelExporterProvider
     }
 
     @Override
-    ByteArrayOutputStream exportDataModels(User currentUser, List<DataModel> dataModel) throws ApiException {
-        throw new ApiBadRequestException('JES01', "${getName()} cannot export multiple DataModels")
+    ByteArrayOutputStream exportCodeSets(User currentUser, List<CodeSet> codeSets) throws ApiException {
+        throw new ApiBadRequestException('CSE01', "${getName()} cannot export multiple CodeSets")
     }
+
+    static String getExportViewPath() {
+        '/valueSet/export'
+    }   
 }

@@ -101,7 +101,7 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
         terminology
         terminology.label == entryId
         terminology.aliases.first() == 'AdministrativeGender'
-        terminology.metadata.size() == 19
+        terminology.metadata.size() == 20
 
         and:
         terminology.terms.size() == 4

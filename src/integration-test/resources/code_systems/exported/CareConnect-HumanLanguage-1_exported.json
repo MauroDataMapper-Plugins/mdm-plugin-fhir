@@ -3,770 +3,770 @@
   "id": "CareConnect-HumanLanguage-1",
   "url": "https://fhir.nhs.uk/STU3/CodeSystem/CareConnect-HumanLanguage-1",
   "version": "1.1.0",
-  "name": null,
+  "name": "Care Connect Human Language",
   "status": "active",
   "date": "2019-03-01T00:00:00+00:00",
   "publisher": "HL7 UK",
-  "description": null,
+  "description": "A CodeSystem that identifies the language used by a person.",
   "copyright": "Copyright © 2016 HL7 UK",
-  "caseSensitive": "true",
+  "caseSensitive": true,
   "content": "complete",
   "concept": [
     {
       "code": "q1",
-      "definition": "Braille"
+      "display": "Braille"
     },
     {
       "code": "q2",
-      "definition": "American Sign Language"
+      "display": "American Sign Language"
     },
     {
       "code": "q3",
-      "definition": "Australian Sign Language"
+      "display": "Australian Sign Language"
     },
     {
       "code": "q4",
-      "definition": "British Sign Language"
+      "display": "British Sign Language"
     },
     {
       "code": "q5",
-      "definition": "Makaton"
+      "display": "Makaton"
     },
     {
       "code": "aa",
-      "definition": "Afar"
+      "display": "Afar"
     },
     {
       "code": "ab",
-      "definition": "Abkhazian"
+      "display": "Abkhazian"
     },
     {
       "code": "af",
-      "definition": "Afrikaans"
+      "display": "Afrikaans"
     },
     {
       "code": "ak",
-      "definition": "Akan"
+      "display": "Akan"
     },
     {
       "code": "sq",
-      "definition": "Albanian"
+      "display": "Albanian"
     },
     {
       "code": "am",
-      "definition": "Amharic"
+      "display": "Amharic"
     },
     {
       "code": "ar",
-      "definition": "Arabic"
+      "display": "Arabic"
     },
     {
       "code": "an",
-      "definition": "Aragonese"
+      "display": "Aragonese"
     },
     {
       "code": "hy",
-      "definition": "Armenian"
+      "display": "Armenian"
     },
     {
       "code": "as",
-      "definition": "Assamese"
+      "display": "Assamese"
     },
     {
       "code": "av",
-      "definition": "Avaric"
+      "display": "Avaric"
     },
     {
       "code": "ae",
-      "definition": "Avestan"
+      "display": "Avestan"
     },
     {
       "code": "ay",
-      "definition": "Aymara"
+      "display": "Aymara"
     },
     {
       "code": "az",
-      "definition": "Azerbaijani"
+      "display": "Azerbaijani"
     },
     {
       "code": "ba",
-      "definition": "Bashkir"
+      "display": "Bashkir"
     },
     {
       "code": "bm",
-      "definition": "Bambara"
+      "display": "Bambara"
     },
     {
       "code": "eu",
-      "definition": "Basque"
+      "display": "Basque"
     },
     {
       "code": "be",
-      "definition": "Belarusian"
+      "display": "Belarusian"
     },
     {
       "code": "bn",
-      "definition": "Bengali"
+      "display": "Bengali"
     },
     {
       "code": "bh",
-      "definition": "Bihari languages"
+      "display": "Bihari languages"
     },
     {
       "code": "bi",
-      "definition": "Bislama"
+      "display": "Bislama"
     },
     {
       "code": "bo",
-      "definition": "Tibetan"
+      "display": "Tibetan"
     },
     {
       "code": "bs",
-      "definition": "Bosnian"
+      "display": "Bosnian"
     },
     {
       "code": "br",
-      "definition": "Breton"
+      "display": "Breton"
     },
     {
       "code": "bg",
-      "definition": "Bulgarian"
+      "display": "Bulgarian"
     },
     {
       "code": "my",
-      "definition": "Burmese"
+      "display": "Burmese"
     },
     {
       "code": "ca",
-      "definition": "Catalan; Valencian"
+      "display": "Catalan; Valencian"
     },
     {
       "code": "cs",
-      "definition": "Czech"
+      "display": "Czech"
     },
     {
       "code": "ch",
-      "definition": "Chamorro"
+      "display": "Chamorro"
     },
     {
       "code": "ce",
-      "definition": "Chechen"
+      "display": "Chechen"
     },
     {
       "code": "zh",
-      "definition": "Chinese"
+      "display": "Chinese"
     },
     {
       "code": "cu",
-      "definition": "Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church Slavonic"
+      "display": "Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church Slavonic"
     },
     {
       "code": "cv",
-      "definition": "Chuvash"
+      "display": "Chuvash"
     },
     {
       "code": "kw",
-      "definition": "Cornish"
+      "display": "Cornish"
     },
     {
       "code": "co",
-      "definition": "Corsican"
+      "display": "Corsican"
     },
     {
       "code": "cr",
-      "definition": "Cree"
+      "display": "Cree"
     },
     {
       "code": "cy",
-      "definition": "Welsh"
+      "display": "Welsh"
     },
     {
       "code": "da",
-      "definition": "Danish"
+      "display": "Danish"
     },
     {
       "code": "de",
-      "definition": "German"
+      "display": "German"
     },
     {
       "code": "dv",
-      "definition": "Divehi; Dhivehi; Maldivian"
+      "display": "Divehi; Dhivehi; Maldivian"
     },
     {
       "code": "nl",
-      "definition": "Dutch; Flemish"
+      "display": "Dutch; Flemish"
     },
     {
       "code": "dz",
-      "definition": "Dzongkha"
+      "display": "Dzongkha"
     },
     {
       "code": "el",
-      "definition": "Greek, Modern (1453-)"
+      "display": "Greek, Modern (1453-)"
     },
     {
       "code": "en",
-      "definition": "English"
+      "display": "English"
     },
     {
       "code": "eo",
-      "definition": "Esperanto"
+      "display": "Esperanto"
     },
     {
       "code": "et",
-      "definition": "Estonian"
+      "display": "Estonian"
     },
     {
       "code": "ee",
-      "definition": "Ewe"
+      "display": "Ewe"
     },
     {
       "code": "fo",
-      "definition": "Faroese"
+      "display": "Faroese"
     },
     {
       "code": "fa",
-      "definition": "Persian"
+      "display": "Persian"
     },
     {
       "code": "fj",
-      "definition": "Fijian"
+      "display": "Fijian"
     },
     {
       "code": "fi",
-      "definition": "Finnish"
+      "display": "Finnish"
     },
     {
       "code": "fr",
-      "definition": "French"
+      "display": "French"
     },
     {
       "code": "fy",
-      "definition": "Western Frisian"
+      "display": "Western Frisian"
     },
     {
       "code": "ff",
-      "definition": "Fulah"
+      "display": "Fulah"
     },
     {
       "code": "ka",
-      "definition": "Georgian"
+      "display": "Georgian"
     },
     {
       "code": "gd",
-      "definition": "Gaelic; Scottish Gaelic"
+      "display": "Gaelic; Scottish Gaelic"
     },
     {
       "code": "ga",
-      "definition": "Irish"
+      "display": "Irish"
     },
     {
       "code": "gl",
-      "definition": "Galician"
+      "display": "Galician"
     },
     {
       "code": "gv",
-      "definition": "Manx"
+      "display": "Manx"
     },
     {
       "code": "gn",
-      "definition": "Guarani"
+      "display": "Guarani"
     },
     {
       "code": "gu",
-      "definition": "Gujarati"
+      "display": "Gujarati"
     },
     {
       "code": "ht",
-      "definition": "Haitian; Haitian Creole"
+      "display": "Haitian; Haitian Creole"
     },
     {
       "code": "ha",
-      "definition": "Hausa"
+      "display": "Hausa"
     },
     {
       "code": "he",
-      "definition": "Hebrew"
+      "display": "Hebrew"
     },
     {
       "code": "hz",
-      "definition": "Herero"
+      "display": "Herero"
     },
     {
       "code": "hi",
-      "definition": "Hindi"
+      "display": "Hindi"
     },
     {
       "code": "ho",
-      "definition": "Hiri Motu"
+      "display": "Hiri Motu"
     },
     {
       "code": "hr",
-      "definition": "Croatian"
+      "display": "Croatian"
     },
     {
       "code": "hu",
-      "definition": "Hungarian"
+      "display": "Hungarian"
     },
     {
       "code": "ig",
-      "definition": "Igbo"
+      "display": "Igbo"
     },
     {
       "code": "is",
-      "definition": "Icelandic"
+      "display": "Icelandic"
     },
     {
       "code": "io",
-      "definition": "Ido"
+      "display": "Ido"
     },
     {
       "code": "ii",
-      "definition": "Sichuan Yi; Nuosu"
+      "display": "Sichuan Yi; Nuosu"
     },
     {
       "code": "iu",
-      "definition": "Inuktitut"
+      "display": "Inuktitut"
     },
     {
       "code": "ie",
-      "definition": "Interlingue; Occidental"
+      "display": "Interlingue; Occidental"
     },
     {
       "code": "ia",
-      "definition": "Interlingua (International Auxiliary Language Association)"
+      "display": "Interlingua (International Auxiliary Language Association)"
     },
     {
       "code": "id",
-      "definition": "Indonesian"
+      "display": "Indonesian"
     },
     {
       "code": "ik",
-      "definition": "Inupiaq"
+      "display": "Inupiaq"
     },
     {
       "code": "it",
-      "definition": "Italian"
+      "display": "Italian"
     },
     {
       "code": "jv",
-      "definition": "Javanese"
+      "display": "Javanese"
     },
     {
       "code": "ja",
-      "definition": "Japanese"
+      "display": "Japanese"
     },
     {
       "code": "kl",
-      "definition": "Kalaallisut; Greenlandic"
+      "display": "Kalaallisut; Greenlandic"
     },
     {
       "code": "kn",
-      "definition": "Kannada"
+      "display": "Kannada"
     },
     {
       "code": "ks",
-      "definition": "Kashmiri"
+      "display": "Kashmiri"
     },
     {
       "code": "kr",
-      "definition": "Kanuri"
+      "display": "Kanuri"
     },
     {
       "code": "kk",
-      "definition": "Kazakh"
+      "display": "Kazakh"
     },
     {
       "code": "km",
-      "definition": "Central Khmer"
+      "display": "Central Khmer"
     },
     {
       "code": "ki",
-      "definition": "Kikuyu; Gikuyu"
+      "display": "Kikuyu; Gikuyu"
     },
     {
       "code": "rw",
-      "definition": "Kinyarwanda"
+      "display": "Kinyarwanda"
     },
     {
       "code": "ky",
-      "definition": "Kirghiz; Kyrgyz"
+      "display": "Kirghiz; Kyrgyz"
     },
     {
       "code": "kv",
-      "definition": "Komi"
+      "display": "Komi"
     },
     {
       "code": "kg",
-      "definition": "Kongo"
+      "display": "Kongo"
     },
     {
       "code": "ko",
-      "definition": "Korean"
+      "display": "Korean"
     },
     {
       "code": "kj",
-      "definition": "Kuanyama; Kwanyama"
+      "display": "Kuanyama; Kwanyama"
     },
     {
       "code": "ku",
-      "definition": "Kurdish"
+      "display": "Kurdish"
     },
     {
       "code": "lo",
-      "definition": "Lao"
+      "display": "Lao"
     },
     {
       "code": "la",
-      "definition": "Latin"
+      "display": "Latin"
     },
     {
       "code": "lv",
-      "definition": "Latvian"
+      "display": "Latvian"
     },
     {
       "code": "li",
-      "definition": "Limburgan; Limburger; Limburgish"
+      "display": "Limburgan; Limburger; Limburgish"
     },
     {
       "code": "ln",
-      "definition": "Lingala"
+      "display": "Lingala"
     },
     {
       "code": "lt",
-      "definition": "Lithuanian"
+      "display": "Lithuanian"
     },
     {
       "code": "lb",
-      "definition": "Luxembourgish; Letzeburgesch"
+      "display": "Luxembourgish; Letzeburgesch"
     },
     {
       "code": "lu",
-      "definition": "Luba-Katanga"
+      "display": "Luba-Katanga"
     },
     {
       "code": "lg",
-      "definition": "Ganda"
+      "display": "Ganda"
     },
     {
       "code": "mk",
-      "definition": "Macedonian"
+      "display": "Macedonian"
     },
     {
       "code": "mh",
-      "definition": "Marshallese"
+      "display": "Marshallese"
     },
     {
       "code": "ml",
-      "definition": "Malayalam"
+      "display": "Malayalam"
     },
     {
       "code": "mi",
-      "definition": "Maori"
+      "display": "Maori"
     },
     {
       "code": "mr",
-      "definition": "Marathi"
+      "display": "Marathi"
     },
     {
       "code": "ms",
-      "definition": "Malay"
+      "display": "Malay"
     },
     {
       "code": "mg",
-      "definition": "Malagasy"
+      "display": "Malagasy"
     },
     {
       "code": "mt",
-      "definition": "Maltese"
+      "display": "Maltese"
     },
     {
       "code": "mn",
-      "definition": "Mongolian"
+      "display": "Mongolian"
     },
     {
       "code": "na",
-      "definition": "Nauru"
+      "display": "Nauru"
     },
     {
       "code": "nv",
-      "definition": "Navajo; Navaho"
+      "display": "Navajo; Navaho"
     },
     {
       "code": "nr",
-      "definition": "Ndebele, South; South Ndebele"
+      "display": "Ndebele, South; South Ndebele"
     },
     {
       "code": "nd",
-      "definition": "Ndebele, North; North Ndebele"
+      "display": "Ndebele, North; North Ndebele"
     },
     {
       "code": "ng",
-      "definition": "Ndonga"
+      "display": "Ndonga"
     },
     {
       "code": "ne",
-      "definition": "Nepali"
+      "display": "Nepali"
     },
     {
       "code": "nn",
-      "definition": "Norwegian Nynorsk; Nynorsk, Norwegian"
+      "display": "Norwegian Nynorsk; Nynorsk, Norwegian"
     },
     {
       "code": "nb",
-      "definition": "Bokmal, Norwegian; Norwegian Bokmal"
+      "display": "Bokmal, Norwegian; Norwegian Bokmal"
     },
     {
       "code": "no",
-      "definition": "Norwegian"
+      "display": "Norwegian"
     },
     {
       "code": "ny",
-      "definition": "Chichewa; Chewa; Nyanja"
+      "display": "Chichewa; Chewa; Nyanja"
     },
     {
       "code": "oc",
-      "definition": "Occitan (post1500)"
+      "display": "Occitan (post1500)"
     },
     {
       "code": "oj",
-      "definition": "Ojibwa"
+      "display": "Ojibwa"
     },
     {
       "code": "or",
-      "definition": "Oriya"
+      "display": "Oriya"
     },
     {
       "code": "om",
-      "definition": "Oromo"
+      "display": "Oromo"
     },
     {
       "code": "os",
-      "definition": "Ossetian; Ossetic"
+      "display": "Ossetian; Ossetic"
     },
     {
       "code": "pa",
-      "definition": "Panjabi; Punjabi"
+      "display": "Panjabi; Punjabi"
     },
     {
       "code": "pi",
-      "definition": "Pali"
+      "display": "Pali"
     },
     {
       "code": "pl",
-      "definition": "Polish"
+      "display": "Polish"
     },
     {
       "code": "pt",
-      "definition": "Portuguese"
+      "display": "Portuguese"
     },
     {
       "code": "ps",
-      "definition": "Pushto; Pashto"
+      "display": "Pushto; Pashto"
     },
     {
       "code": "qu",
-      "definition": "Quechua"
+      "display": "Quechua"
     },
     {
       "code": "rm",
-      "definition": "Romansh"
+      "display": "Romansh"
     },
     {
       "code": "ro",
-      "definition": "Romanian; Moldavian; Moldovan"
+      "display": "Romanian; Moldavian; Moldovan"
     },
     {
       "code": "rn",
-      "definition": "Rundi"
+      "display": "Rundi"
     },
     {
       "code": "ru",
-      "definition": "Russian"
+      "display": "Russian"
     },
     {
       "code": "sg",
-      "definition": "Sango"
+      "display": "Sango"
     },
     {
       "code": "sa",
-      "definition": "Sanskrit"
+      "display": "Sanskrit"
     },
     {
       "code": "sr",
-      "definition": "Serbian"
+      "display": "Serbian"
     },
     {
       "code": "si",
-      "definition": "Sinhala; Sinhalese"
+      "display": "Sinhala; Sinhalese"
     },
     {
       "code": "sk",
-      "definition": "Slovak"
+      "display": "Slovak"
     },
     {
       "code": "sl",
-      "definition": "Slovenian"
+      "display": "Slovenian"
     },
     {
       "code": "se",
-      "definition": "Northern Sami"
+      "display": "Northern Sami"
     },
     {
       "code": "sm",
-      "definition": "Samoan"
+      "display": "Samoan"
     },
     {
       "code": "sn",
-      "definition": "Shona"
+      "display": "Shona"
     },
     {
       "code": "sd",
-      "definition": "Sindhi"
+      "display": "Sindhi"
     },
     {
       "code": "so",
-      "definition": "Somali"
+      "display": "Somali"
     },
     {
       "code": "st",
-      "definition": "Sotho, Southern"
+      "display": "Sotho, Southern"
     },
     {
       "code": "es",
-      "definition": "Spanish; Castilian"
+      "display": "Spanish; Castilian"
     },
     {
       "code": "sc",
-      "definition": "Sardinian"
+      "display": "Sardinian"
     },
     {
       "code": "ss",
-      "definition": "Swati"
+      "display": "Swati"
     },
     {
       "code": "su",
-      "definition": "Sundanese"
+      "display": "Sundanese"
     },
     {
       "code": "sw",
-      "definition": "Swahili"
+      "display": "Swahili"
     },
     {
       "code": "sv",
-      "definition": "Swedish"
+      "display": "Swedish"
     },
     {
       "code": "ty",
-      "definition": "Tahitian"
+      "display": "Tahitian"
     },
     {
       "code": "ta",
-      "definition": "Tamil"
+      "display": "Tamil"
     },
     {
       "code": "tt",
-      "definition": "Tatar"
+      "display": "Tatar"
     },
     {
       "code": "te",
-      "definition": "Telugu"
+      "display": "Telugu"
     },
     {
       "code": "tg",
-      "definition": "Tajik"
+      "display": "Tajik"
     },
     {
       "code": "tl",
-      "definition": "Tagalog"
+      "display": "Tagalog"
     },
     {
       "code": "th",
-      "definition": "Thai"
+      "display": "Thai"
     },
     {
       "code": "ti",
-      "definition": "Tigrinya"
+      "display": "Tigrinya"
     },
     {
       "code": "to",
-      "definition": "Tonga (Tonga Islands)"
+      "display": "Tonga (Tonga Islands)"
     },
     {
       "code": "tn",
-      "definition": "Tswana"
+      "display": "Tswana"
     },
     {
       "code": "ts",
-      "definition": "Tsonga"
+      "display": "Tsonga"
     },
     {
       "code": "tk",
-      "definition": "Turkmen"
+      "display": "Turkmen"
     },
     {
       "code": "tr",
-      "definition": "Turkish"
+      "display": "Turkish"
     },
     {
       "code": "tw",
-      "definition": "Twi"
+      "display": "Twi"
     },
     {
       "code": "ug",
-      "definition": "Uighur; Uyghur"
+      "display": "Uighur; Uyghur"
     },
     {
       "code": "uk",
-      "definition": "Ukrainian"
+      "display": "Ukrainian"
     },
     {
       "code": "ur",
-      "definition": "Urdu"
+      "display": "Urdu"
     },
     {
       "code": "uz",
-      "definition": "Uzbek"
+      "display": "Uzbek"
     },
     {
       "code": "ve",
-      "definition": "Venda"
+      "display": "Venda"
     },
     {
       "code": "vi",
-      "definition": "Vietnamese"
+      "display": "Vietnamese"
     },
     {
       "code": "vo",
-      "definition": "Volapuk"
+      "display": "Volapuk"
     },
     {
       "code": "wa",
-      "definition": "Walloon"
+      "display": "Walloon"
     },
     {
       "code": "wo",
-      "definition": "Wolof"
+      "display": "Wolof"
     },
     {
       "code": "xh",
-      "definition": "Xhosa"
+      "display": "Xhosa"
     },
     {
       "code": "yi",
-      "definition": "Yiddish"
+      "display": "Yiddish"
     },
     {
       "code": "yo",
-      "definition": "Yoruba"
+      "display": "Yoruba"
     },
     {
       "code": "za",
-      "definition": "Zhuang; Chuang"
+      "display": "Zhuang; Chuang"
     },
     {
       "code": "zu",
-      "definition": "Zulu"
+      "display": "Zulu"
     }
   ]
 }

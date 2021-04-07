@@ -15,13 +15,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter
 
 import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter.FhirTerminologyExporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 import uk.ac.ox.softeng.maurodatamapper.test.json.JsonComparer
 
@@ -42,11 +43,11 @@ import java.nio.file.Paths
 @Integration
 @Rollback
 @Slf4j
-class FhirDataModelJsonExporterProviderServiceSpec extends BaseFunctionalSpec implements JsonComparer {
+class FhirTerminologyExporterProviderServiceSpec extends BaseFunctionalSpec implements JsonComparer {
 
-    FhirDataModelImporterProviderService fhirDataModelImporterProviderService
-    FhirDataModelJsonExporterProviderService fhirDataModelJsonExporterProviderService
-    DataModelService dataModelService
+    FhirTerminologyImporterProviderService fhirTerminologyImporterProviderService
+    FhirTerminologyExporterProviderService fhirTerminologyExporterProviderService
+    TerminologyService terminologyService
 
     @Shared
     Path resourcesPath
@@ -57,10 +58,11 @@ class FhirDataModelJsonExporterProviderServiceSpec extends BaseFunctionalSpec im
     @OnceBefore
     void setupServerClient() {
         resourcesPath =
-            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'structure_definitions').toAbsolutePath()
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()
         exportedResourcesPath =
-            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'structure_definitions', 'exported')
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems', 'exported')
                 .toAbsolutePath()
+
         ersatz = new ErsatzServer()
     }
 
@@ -81,13 +83,13 @@ class FhirDataModelJsonExporterProviderServiceSpec extends BaseFunctionalSpec im
     }
 
     @Unroll
-    def 'CC01: verify exported DataModel JSON content - "#entryId"'() {
+    def 'CC01: verify exported Terminology JSON content - "#entryId"'() {
         //import FHIR Json file
         given:
         String exportedEntryId = "${entryId}_exported"
         String version = 'STU3'
         ersatz.expectations {
-            GET("/$version/StructureDefinition/$entryId") {
+            GET("/$version/CodeSystem/$entryId") {
                 query('_format', 'json')
                 called(1)
                 responder {
@@ -96,7 +98,7 @@ class FhirDataModelJsonExporterProviderServiceSpec extends BaseFunctionalSpec im
                     body(loadJsonString("${entryId}.json"))
                 }
             }
-            GET("/$version/StructureDefinition/$exportedEntryId") {
+            GET("/$version/CodeSystem/$exportedEntryId") {
                 query('_format', 'json')
                 called(1)
                 responder {
@@ -106,21 +108,21 @@ class FhirDataModelJsonExporterProviderServiceSpec extends BaseFunctionalSpec im
                 }
             }
         }
-        def parameters = new FhirDataModelImporterProviderServiceParameters(
+        def parameters = new FhirTerminologyImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
             fhirVersion: version,
             modelName: entryId
         )
 
-        when: 'the DataModel is imported from Json'
-        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+        when: 'the Terminology is imported from Json'
+        Terminology imported = fhirTerminologyImporterProviderService.importDomain(admin, parameters)
 
-        then:
+        then: 'it is imported with the correct label'
         imported
         imported.label == entryId
 
-        when: 'the imported DataModel is exported'
-        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelExporterProviderService.exportDataModel(admin, imported))
+        when: 'the imported Terminology is exported'
+        ByteArrayOutputStream exportedJsonBytes = (fhirTerminologyExporterProviderService.exportTerminology(admin, imported))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then: 'the exported Json is correct'
@@ -128,29 +130,30 @@ class FhirDataModelJsonExporterProviderServiceSpec extends BaseFunctionalSpec im
         validateExportedModel(entryId, exportedJson)
 
 
-        def reParameters = new FhirDataModelImporterProviderServiceParameters(
+        def reParameters = new FhirTerminologyImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
             fhirVersion: version,
             modelName: exportedEntryId
         )
 
-        when: 'the dataModel is reimported from the export'
-        DataModel reImported = fhirDataModelImporterProviderService.importModel(admin, reParameters)
+        when: 'the terminology is reimported from the export'
+        Terminology reImported = fhirTerminologyImporterProviderService.importDomain(admin, reParameters)
 
         then:
         reImported
 
         when: 'differences between the import and reimport are determined'
-        ObjectDiff od = dataModelService.getDiffForModels(imported, reImported)
+        ObjectDiff od = terminologyService.getDiffForModels(imported, reImported)
 
         then: 'there are no differences'
         od.getNumberOfDiffs() == 1
-        od.toString() == "Left:Unsaved_DataModel <> Right: Unsaved_DataModel :: 1 differences\n  label :: ${entryId} <> ${entryId}_exported"
+        od.toString() == "Left:Unsaved_Terminology <> Right:Unsaved_Terminology :: 1 differences\n  label :: ${entryId} <> ${entryId}_exported"
 
         where:
         entryId << [
-            'CareConnect-ProcedureRequest-1',
-            'CareConnect-OxygenSaturation-Observation-1'
+            'CareConnect-ConditionCategory-1',
+            'CareConnect-EthnicCategory-1',
+            'CareConnect-HumanLanguage-1'
         ]
     }
 

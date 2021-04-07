@@ -22,7 +22,7 @@ json {
     if (fhirMetadata.title) title fhirMetadata.title
     if (fhirMetadata.status) status fhirMetadata.status
     if (fhirMetadata.date) date fhirMetadata.date
-    if (fhirMetadata.publisher) publisher fhirMetadata.publisher
+    if (terminology.organisation) publisher terminology.organisation
     if (terminology.description) description terminology.description
     if (fhirMetadata.copyright) copyright fhirMetadata.copyright
     if (fhirMetadata.caseSensitive) caseSensitive fhirMetadata.caseSensitive.toString().toBoolean()

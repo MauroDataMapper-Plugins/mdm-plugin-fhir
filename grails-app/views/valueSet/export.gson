@@ -1,4 +1,3 @@
-import uk.ac.ox.softeng.maurodatamapper.core.rest.converter.json.OffsetDateTimeConverter
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 
@@ -37,7 +36,7 @@ json {
     if (fhirMetadata.title) title fhirMetadata.title
     if (fhirMetadata.status) status fhirMetadata.status
     if (fhirMetadata.date) date fhirMetadata.date
-    if (fhirMetadata.publisher) publisher fhirMetadata.publisher
+    if (codeSet.organisation) publisher codeSet.organisation
     if (codeSet.description) description codeSet.description
     if (fhirMetadata.copyright) copyright fhirMetadata.copyright
     if (fhirMetadata.content) content fhirMetadata.content

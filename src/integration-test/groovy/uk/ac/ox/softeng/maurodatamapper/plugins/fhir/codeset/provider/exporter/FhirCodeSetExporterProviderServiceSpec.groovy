@@ -20,15 +20,15 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
-import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
-import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter.FhirCodeSetJsonExporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter.FhirCodeSetExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 import uk.ac.ox.softeng.maurodatamapper.test.json.JsonComparer
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -51,10 +51,10 @@ import java.nio.file.Paths
 @Integration
 @Rollback
 @Slf4j
-class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec implements JsonComparer {
+class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec implements JsonComparer {
 
     FhirCodeSetImporterProviderService fhirCodeSetImporterProviderService
-    FhirCodeSetJsonExporterProviderService fhirCodeSetJsonExporterProviderService
+    FhirCodeSetExporterProviderService fhirCodeSetExporterProviderService
     FhirTerminologyImporterProviderService fhirTerminologyImporterProviderService
     CodeSetService codeSetService
     TerminologyService terminologyService
@@ -140,7 +140,7 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
         imported.label == entryId
 
         when: 'the imported CodeSet is exported'
-        ByteArrayOutputStream exportedJsonBytes = (fhirCodeSetJsonExporterProviderService.exportCodeSet(admin, imported))
+        ByteArrayOutputStream exportedJsonBytes = (fhirCodeSetExporterProviderService.exportCodeSet(admin, imported))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then: 'the exported Json is correct'
@@ -164,7 +164,8 @@ class FhirCodeSetJsonExporterProviderServiceSpec extends BaseIntegrationSpec imp
         ObjectDiff od = codeSetService.getDiffForModels(imported, reImported)
 
         then: 'there are no differences'
-        od.getNumberOfDiffs() == 0
+        od.getNumberOfDiffs() == 1
+        od.toString() == "Left:Unsaved_CodeSet <> Right:Unsaved_CodeSet :: 1 differences\n  label :: ${entryId} <> ${entryId}_exported"
 
         where:
         entryId << [
