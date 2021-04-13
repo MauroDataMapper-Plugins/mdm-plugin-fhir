@@ -144,8 +144,7 @@ class FhirDataModelExporterProviderServiceSpec extends BaseFunctionalSpec implem
         ObjectDiff od = dataModelService.getDiffForModels(imported, reImported)
 
         then: 'there are no differences'
-        od.getNumberOfDiffs() == 1
-        od.toString() == "Left:Unsaved_DataModel <> Right:Unsaved_DataModel :: 1 differences\n  label :: ${entryId} <> ${entryId}_exported"
+        od.getNumberOfDiffs() == 0
 
         where:
         entryId << [

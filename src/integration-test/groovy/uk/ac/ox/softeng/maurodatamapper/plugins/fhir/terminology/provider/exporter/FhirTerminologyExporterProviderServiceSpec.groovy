@@ -146,8 +146,7 @@ class FhirTerminologyExporterProviderServiceSpec extends BaseFunctionalSpec impl
         ObjectDiff od = terminologyService.getDiffForModels(imported, reImported)
 
         then: 'there are no differences'
-        od.getNumberOfDiffs() == 1
-        od.toString() == "Left:Unsaved_Terminology <> Right:Unsaved_Terminology :: 1 differences\n  label :: ${entryId} <> ${entryId}_exported"
+        od.getNumberOfDiffs() == 0
 
         where:
         entryId << [

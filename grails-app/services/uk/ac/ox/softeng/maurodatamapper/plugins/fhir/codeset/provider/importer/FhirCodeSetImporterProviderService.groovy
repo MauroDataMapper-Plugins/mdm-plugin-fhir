@@ -36,6 +36,8 @@ import io.micronaut.http.uri.UriBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
+import java.time.OffsetDateTime
+
 class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<FhirCodeSetImporterProviderServiceParameters>
     implements MetadataHandling {
 
@@ -64,6 +66,24 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
     @Override
     Boolean canImportMultipleDomains() {
         true
+    }
+
+    @Override
+    CodeSet updateImportedModelFromParameters(CodeSet importedModel, FhirCodeSetImporterProviderServiceParameters params, boolean list) {
+        if (importedModel.metadata.find {it.key == 'status'}.value == 'active') {
+            importedModel.finalised = true
+            importedModel.dateFinalised = importedModel.metadata.find {it.key == 'date'}.value as OffsetDateTime
+            importedModel.version = importedModel.metadata.find {it.key == 'version'}.value as Long
+        }
+        importedModel
+    }
+
+    @Override
+    CodeSet checkImport(User currentUser, CodeSet importedModel, FhirCodeSetImporterProviderServiceParameters params) {
+        classifierService.checkClassifiers(currentUser, importedModel)
+        modelService.checkDocumentationVersion(importedModel, params.importAsNewDocumentationVersion, currentUser)
+        modelService.checkBranchModelVersion(importedModel, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+        importedModel
     }
 
     @Override

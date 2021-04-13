@@ -67,16 +67,30 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
     @Override
     DataModel updateImportedModelFromParameters(DataModel importedModel, FhirDataModelImporterProviderServiceParameters params, boolean list) {
-        if (params.finalised != null) importedModel.finalised = params.finalised
-        if (params.author) importedModel.author = params.author
-        if (params.description) importedModel.description = params.description
-        if (importedModel.metadata.find { it.key == 'status' }.value == 'active') {
+        if (importedModel.metadata.find {it.key == 'status'}.value == 'active') {
             importedModel.finalised = true
-            importedModel.dateFinalised = importedModel.metadata.find { it.key == 'date' }.value as OffsetDateTime
-            importedModel.version = importedModel.metadata.find { it.key == 'version' }.value as Long
+            importedModel.dateFinalised = importedModel.metadata.find {it.key == 'date'}.value as OffsetDateTime
+            importedModel.version = importedModel.metadata.find {it.key == 'version'}.value as Long
         }
         importedModel
-        return super.updateImportedModelFromParameters(importedModel, params, list)
+    }
+
+    @Override
+    DataModel checkImport(User currentUser, DataModel importedModel, FhirDataModelImporterProviderServiceParameters params) {
+        classifierService.checkClassifiers(currentUser, importedModel)
+        modelService.checkDocumentationVersion(importedModel, params.importAsNewDocumentationVersion, currentUser)
+        modelService.checkBranchModelVersion(importedModel, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+
+        importedModel.dataClasses?.each {dc ->
+            classifierService.checkClassifiers(currentUser, dc)
+            dc.dataElements?.each {de ->
+                classifierService.checkClassifiers(currentUser, de)
+            }
+        }
+        importedModel.dataTypes?.each {dt ->
+            classifierService.checkClassifiers(currentUser, dt)
+        }
+        importedModel
     }
 
     @Override

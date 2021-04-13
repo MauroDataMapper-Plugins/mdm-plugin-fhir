@@ -164,8 +164,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
         ObjectDiff od = codeSetService.getDiffForModels(imported, reImported)
 
         then: 'there are no differences'
-        od.getNumberOfDiffs() == 1
-        od.toString() == "Left:Unsaved_CodeSet <> Right:Unsaved_CodeSet :: 1 differences\n  label :: ${entryId} <> ${entryId}_exported"
+        od.getNumberOfDiffs() == 0
 
         where:
         entryId << [
