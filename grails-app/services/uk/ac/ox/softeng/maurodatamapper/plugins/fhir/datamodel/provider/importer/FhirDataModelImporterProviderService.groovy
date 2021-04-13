@@ -24,6 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
@@ -35,9 +36,10 @@ import org.springframework.context.ApplicationContext
 
 @Slf4j
 class FhirDataModelImporterProviderService extends DataModelImporterProviderService<FhirDataModelImporterProviderServiceParameters>
-    implements MetadataHandling {
+    implements MetadataHandling, ImportDataHandling<DataModel, FhirDataModelImporterProviderServiceParameters> {
 
-    private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'alias', 'snapshot', 'differential']
+    private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'alias', 'publisher', 'snapshot',
+                                                     'differential']
 
     @Autowired
     ApplicationContext applicationContext
@@ -60,6 +62,27 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     @Override
     Boolean canImportMultipleDomains() {
         true
+    }
+
+    @Override
+    DataModel updateImportedModelFromParameters(DataModel importedModel, FhirDataModelImporterProviderServiceParameters params, boolean list) {
+        updateFhirImportedModelFromParameters(importedModel, params, list)
+    }
+
+    @Override
+    DataModel checkImport(User currentUser, DataModel importedModel, FhirDataModelImporterProviderServiceParameters params) {
+        DataModel checked = checkFhirImport(currentUser, importedModel, params)
+
+        checked.dataClasses?.each {dc ->
+            classifierService.checkClassifiers(currentUser, dc)
+            dc.dataElements?.each {de ->
+                classifierService.checkClassifiers(currentUser, de)
+            }
+        }
+        checked.dataTypes?.each {dt ->
+            classifierService.checkClassifiers(currentUser, dt)
+        }
+        checked
     }
 
     @Override
@@ -103,7 +126,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         //log.trace('JSON\n{}', new JsonBuilder(data).toPrettyString())
 
         //dataModel initialisation
-        DataModel dataModel = new DataModel(label: dataModelName, description: data.description)
+        DataModel dataModel = new DataModel(label: data.id, description: data.description, organisation: data.publisher)
         if (data.alias) {
             dataModel.aliases = data.alias as List<String>
         }
@@ -112,10 +135,10 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         List<Map> datasets = data.snapshot.element
 
         // resolving odd id names eg OxygenSaturation valueQuantity
-        datasets = datasets.each { dataset ->
+        datasets = datasets.each {dataset ->
             if (dataset.sliceName && (dataset.path.tokenize('.').last() == dataset.sliceName)) {
                 String accursedSliceName = dataset.sliceName
-                datasets.each { pathDataset ->
+                datasets.each {pathDataset ->
                     if (pathDataset.id.contains(accursedSliceName)) {
                         pathDataset.oldId = pathDataset.id
                         pathDataset.id = pathDataset.path
@@ -133,10 +156,10 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
         // find all DCs
         List<String> dataClassKeys = dataItemMap
-            .findAll { key, value ->
+            .findAll {key, value ->
                 value.last() == 'id'
-            }.collect { key, value ->
-            value.findAll { it != 'id' }.join('.')
+            }.collect {key, value ->
+            value.findAll {it != 'id'}.join('.')
         }.sort()
 
         log.debug('{} DataClasses found', dataClassKeys.size())
@@ -206,7 +229,7 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
             dataElement.aliases = dataset.alias as List<String>
         }
         String dTLabel = dataset.type ? dataset.type.code.get(0) : dataset.contentReference
-        PrimitiveType pt = dataModel.dataTypes.find { it.label == dTLabel }
+        PrimitiveType pt = dataModel.dataTypes.find {it.label == dTLabel}
         if (!pt) {
             pt = new PrimitiveType(label: dTLabel)
             dataModel.addToPrimitiveTypes(pt)

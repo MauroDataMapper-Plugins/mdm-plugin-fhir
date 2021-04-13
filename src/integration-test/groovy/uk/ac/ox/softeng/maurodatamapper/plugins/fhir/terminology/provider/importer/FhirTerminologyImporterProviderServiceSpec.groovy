@@ -138,7 +138,7 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
         terminology
         terminology.label == entryId
         terminology.aliases.first() == 'Care Connect Condition Category'
-        terminology.metadata.size() == 9
+        terminology.metadata.size() == 8
 
         and:
         terminology.terms.size() == 6
@@ -175,7 +175,7 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
         terminology
         terminology.label == entryId
         terminology.aliases.first() == 'Care Connect Ethnic Category'
-        terminology.metadata.size() == 10
+        terminology.metadata.size() == 9
 
         and:
         terminology.terms.size() == 68
@@ -211,7 +211,7 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
         terminology
         terminology.label == entryId
         terminology.aliases.first() == 'Care Connect Human Language'
-        terminology.metadata.size() == 9
+        terminology.metadata.size() == 8
 
         and:
         terminology.terms.size() == 189

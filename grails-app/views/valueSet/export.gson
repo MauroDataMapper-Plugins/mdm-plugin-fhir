@@ -1,12 +1,11 @@
-import uk.ac.ox.softeng.maurodatamapper.core.rest.converter.json.OffsetDateTimeConverter
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 
 model {
-    CodeSet export
+    CodeSet codeSet
 }
 
-Map<String,Object> fhirMetadata = export.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer')
+Map<String,Object> fhirMetadata = codeSet.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer')
     .collectEntries {md -> [md.key, md.value]}
 
 Map<String,Object> extensions = [:]
@@ -20,7 +19,7 @@ fhirMetadata.findAll {it.key.startsWith('identifier.')}.each { key, val ->
 }
 
 Collection<Terminology> terminologies = []
-export.terms.each { term ->
+codeSet.terms.each { term ->
     if (!terminologies.contains(term.terminology)) {
         terminologies += term.terminology
     }
@@ -28,17 +27,17 @@ export.terms.each { term ->
 
 json {
     resourceType "ValueSet"
-    id export.label
+    id codeSet.label
     if (extensions) extension g.render([extensions])
     if (fhirMetadata.url) url fhirMetadata.url
     if (identifiers) identifier g.render([identifiers])
     if (fhirMetadata.version) version fhirMetadata.version
-    name export.aliases[0]
+    name codeSet.aliases[0]
     if (fhirMetadata.title) title fhirMetadata.title
     if (fhirMetadata.status) status fhirMetadata.status
     if (fhirMetadata.date) date fhirMetadata.date
-    if (fhirMetadata.publisher) publisher fhirMetadata.publisher
-    if (export.description) description export.description
+    if (codeSet.organisation) publisher codeSet.organisation
+    if (codeSet.description) description codeSet.description
     if (fhirMetadata.copyright) copyright fhirMetadata.copyright
     if (fhirMetadata.content) content fhirMetadata.content
 

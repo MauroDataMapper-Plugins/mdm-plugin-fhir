@@ -15,14 +15,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.exporter
 
 import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter.FhirTerminologyJsonExporterProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.FhirDataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 import uk.ac.ox.softeng.maurodatamapper.test.json.JsonComparer
 
@@ -43,19 +42,25 @@ import java.nio.file.Paths
 @Integration
 @Rollback
 @Slf4j
-class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec implements JsonComparer {
+class FhirDataModelExporterProviderServiceSpec extends BaseFunctionalSpec implements JsonComparer {
 
-    FhirTerminologyImporterProviderService fhirTerminologyImporterProviderService
-    FhirTerminologyJsonExporterProviderService fhirTerminologyJsonExporterProviderService
-    TerminologyService terminologyService
+    FhirDataModelImporterProviderService fhirDataModelImporterProviderService
+    FhirDataModelExporterProviderService fhirDataModelExporterProviderService
+    DataModelService dataModelService
 
     @Shared
     Path resourcesPath
 
+    @Shared
+    Path exportedResourcesPath
+
     @OnceBefore
     void setupServerClient() {
         resourcesPath =
-            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'structure_definitions').toAbsolutePath()
+        exportedResourcesPath =
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'structure_definitions', 'exported')
+                .toAbsolutePath()
         ersatz = new ErsatzServer()
     }
 
@@ -76,14 +81,13 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
     }
 
     @Unroll
-    def 'CC01: verify exported Terminology JSON content - "#testName"'() {
+    def 'CC01: verify exported DataModel JSON content - "#entryId"'() {
         //import FHIR Json file
         given:
-        String entryId = testName
         String exportedEntryId = "${entryId}_exported"
         String version = 'STU3'
         ersatz.expectations {
-            GET("/$version/CodeSystem/$entryId") {
+            GET("/$version/StructureDefinition/$entryId") {
                 query('_format', 'json')
                 called(1)
                 responder {
@@ -92,31 +96,31 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
                     body(loadJsonString("${entryId}.json"))
                 }
             }
-            GET("/$version/CodeSystem/$exportedEntryId") {
+            GET("/$version/StructureDefinition/$exportedEntryId") {
                 query('_format', 'json')
                 called(1)
                 responder {
                     contentType('application/json')
                     code(200)
-                    body(loadJsonString("${exportedEntryId}.json"))
+                    body(loadExportedJsonString("${exportedEntryId}.json"))
                 }
             }
         }
-        def parameters = new FhirTerminologyImporterProviderServiceParameters(
+        def parameters = new FhirDataModelImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
             fhirVersion: version,
             modelName: entryId
         )
 
-        when: 'the Terminology is imported from Json'
-        Terminology imported = fhirTerminologyImporterProviderService.importDomain(admin, parameters)
-        
-        then: 'it is imported with the correct label'
+        when: 'the DataModel is imported from Json'
+        DataModel imported = fhirDataModelImporterProviderService.importModel(admin, parameters)
+
+        then:
         imported
         imported.label == entryId
 
-        when: 'the imported Terminology is exported'
-        ByteArrayOutputStream exportedJsonBytes = (fhirTerminologyJsonExporterProviderService.exportTerminology(admin, imported))
+        when: 'the imported DataModel is exported'
+        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelExporterProviderService.exportDataModel(admin, imported))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then: 'the exported Json is correct'
@@ -124,30 +128,28 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
         validateExportedModel(entryId, exportedJson)
 
 
-        def reParameters = new FhirTerminologyImporterProviderServiceParameters(
+        def reParameters = new FhirDataModelImporterProviderServiceParameters(
             fhirHost: ersatz.httpUrl,
             fhirVersion: version,
             modelName: exportedEntryId
         )
 
-        when: 'the terminology is reimported from the export'
-        Terminology reImported = fhirTerminologyImporterProviderService.importDomain(admin, reParameters)
+        when: 'the dataModel is reimported from the export'
+        DataModel reImported = fhirDataModelImporterProviderService.importModel(admin, reParameters)
 
         then:
         reImported
 
         when: 'differences between the import and reimport are determined'
-        ObjectDiff od = terminologyService.getDiffForModels(imported, reImported)
+        ObjectDiff od = dataModelService.getDiffForModels(imported, reImported)
 
-        then: 'there is one difference'
-        od.getNumberOfDiffs() == 1
-        od.toString() == "Left:Unsaved_Terminology <> Right:Unsaved_Terminology :: 1 differences\n  label :: ${testName} <> ${testName}_exported"
+        then: 'there are no differences'
+        od.getNumberOfDiffs() == 0
 
         where:
-        testName << [
-            'CareConnect-ConditionCategory-1',
-            'CareConnect-EthnicCategory-1',
-            'CareConnect-HumanLanguage-1'
+        entryId << [
+            'CareConnect-ProcedureRequest-1',
+            'CareConnect-OxygenSaturation-Observation-1'
         ]
     }
 
@@ -157,12 +159,17 @@ class FhirTerminologyJsonExporterProviderServiceSpec extends BaseFunctionalSpec 
         Files.readString(testFilePath)
     }
 
+    String loadExportedJsonString(String filename) {
+        Path testFilePath = exportedResourcesPath.resolve("${filename}").toAbsolutePath()
+        Files.exists(testFilePath) ? Files.readString(testFilePath) : ''
+    }
+
     void validateExportedModel(String entryId, String exportedModel) {
         assert exportedModel, 'There must be an exported model string'
 
-        Path expectedPath = resourcesPath.resolve("${entryId}_exported.json")
+        Path expectedPath = exportedResourcesPath.resolve("${entryId}_exported.json")
         if (!Files.exists(expectedPath)) {
-            //Files.write(expectedPath, exportedModel.bytes)
+            Files.write(expectedPath, exportedModel.bytes)
             Assert.fail("Expected export file ${expectedPath} does not exist")
         }
 

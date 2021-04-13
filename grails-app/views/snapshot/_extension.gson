@@ -21,4 +21,7 @@ json {
     if (extensionMap.any { it.key == 'valueBoolean' }) {
         valueBoolean extensionMap.valueBoolean
     }
+    if (extensionMap.any { it.key == 'valueUri' }) {
+        valueUri extensionMap.valueUri
+    }
 }

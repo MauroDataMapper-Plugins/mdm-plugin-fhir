@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Rule
 import uk.ac.ox.softeng.maurodatamapper.core.facet.rule.RuleRepresentation
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
@@ -37,9 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
 class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<FhirCodeSetImporterProviderServiceParameters>
-    implements MetadataHandling {
+    implements MetadataHandling, ImportDataHandling<CodeSet, FhirCodeSetImporterProviderServiceParameters> {
 
-    private static List<String> NON_METADATA_KEYS = ['containd', 'id', 'name', 'description', 'codeSystem', 'compose']
+    private static List<String> NON_METADATA_KEYS = ['contains', 'id', 'name', 'description', 'publisher', 'codeSystem', 'compose']
 
     TerminologyService terminologyService
 
@@ -64,6 +65,16 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
     @Override
     Boolean canImportMultipleDomains() {
         true
+    }
+
+    @Override
+    CodeSet updateImportedModelFromParameters(CodeSet importedModel, FhirCodeSetImporterProviderServiceParameters params, boolean list) {
+        updateFhirImportedModelFromParameters(importedModel, params, list)
+    }
+
+    @Override
+    CodeSet checkImport(User currentUser, CodeSet importedModel, FhirCodeSetImporterProviderServiceParameters params) {
+        checkFhirImport(currentUser, importedModel, params)
     }
 
     @Override
@@ -106,7 +117,7 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
         Map<String, Object> data = fhirServerClient.getValueSetEntry(codeSetName)
 
 
-        CodeSet codeSet = new CodeSet(label: data.id, description: data.description, aliases: [data.name])
+        CodeSet codeSet = new CodeSet(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
         processMetadata(data, codeSet, namespace, NON_METADATA_KEYS)
 
         // TODO provide addtl param to import terminology if its not found

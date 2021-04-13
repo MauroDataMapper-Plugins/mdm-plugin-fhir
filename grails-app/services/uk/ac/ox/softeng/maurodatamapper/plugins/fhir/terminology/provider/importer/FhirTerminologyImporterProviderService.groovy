@@ -19,6 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.impor
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
@@ -32,9 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
 class FhirTerminologyImporterProviderService extends TerminologyImporterProviderService<FhirTerminologyImporterProviderServiceParameters>
-    implements MetadataHandling {
+    implements MetadataHandling, ImportDataHandling<Terminology, FhirTerminologyImporterProviderServiceParameters> {
 
-    private static List<String> TERMINOLOGY_NON_METADATA_KEYS = ['id', 'name', 'description', 'concept']
+    private static List<String> TERMINOLOGY_NON_METADATA_KEYS = ['id', 'name', 'description', 'publisher', 'concept']
     private static List<String> TERM_NON_METADATA_KEYS = ['code', 'definition', 'display']
 
     TerminologyService terminologyService
@@ -60,6 +61,16 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
     @Override
     Boolean canImportMultipleDomains() {
         true
+    }
+
+    @Override
+    Terminology updateImportedModelFromParameters(Terminology importedModel, FhirTerminologyImporterProviderServiceParameters params, boolean list) {
+        updateFhirImportedModelFromParameters(importedModel, params, list)
+    }
+
+    @Override
+    Terminology checkImport(User currentUser, Terminology importedModel, FhirTerminologyImporterProviderServiceParameters params) {
+        checkFhirImport(currentUser, importedModel, params)
     }
 
     @Override
@@ -101,7 +112,7 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getCodeSystemEntry(terminologyName)
 
-        Terminology terminology = new Terminology(label: data.id, description: data.description, aliases: [data.name])
+        Terminology terminology = new Terminology(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
         processMetadata(data, terminology, namespace, TERMINOLOGY_NON_METADATA_KEYS)
 
         data.concept.each {Map concept ->

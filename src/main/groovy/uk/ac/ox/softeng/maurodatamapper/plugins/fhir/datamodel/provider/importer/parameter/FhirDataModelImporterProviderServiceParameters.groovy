@@ -52,14 +52,34 @@ class FhirDataModelImporterProviderServiceParameters extends DataModelImporterPr
 
     @ImportParameterConfig(
             optional = true,
-            displayName = 'Structure Definition name',
-            description = ['Name of the individual Structure Definition Resource to import.',
-                    'If this is left blank then all Structure Definitions will be imported for the defined version.'],
-            descriptionJoinDelimiter = ' ',
-            order = 2,
-            group = @ImportGroupConfig(
-                    name = 'FHIR Settings',
-                    order = -1
-            ))
+        displayName = 'Structure Definition name',
+        description = ['Name of the individual Structure Definition Resource to import.',
+            'If this is left blank then all Structure Definitions will be imported for the defined version.'],
+        descriptionJoinDelimiter = ' ',
+        order = 2,
+        group = @ImportGroupConfig(
+            name = 'FHIR Settings',
+            order = -1
+        ))
     String modelName
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    Boolean finalised = false
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    String description
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    String author
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    String organisation
 }

@@ -29,7 +29,7 @@ import grails.plugin.json.view.JsonViewTemplateEngine
 import groovy.text.Template
 import org.springframework.beans.factory.annotation.Autowired
 
-class FhirDataModelJsonExporterService extends DataModelExporterProviderService implements TemplateBasedExporter {
+class FhirDataModelExporterProviderService extends DataModelExporterProviderService implements TemplateBasedExporter {
 
     @Autowired
     JsonViewTemplateEngine templateEngine
