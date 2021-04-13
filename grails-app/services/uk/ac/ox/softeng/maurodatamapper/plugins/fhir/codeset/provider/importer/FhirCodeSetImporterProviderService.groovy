@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Rule
 import uk.ac.ox.softeng.maurodatamapper.core.facet.rule.RuleRepresentation
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
@@ -36,10 +37,8 @@ import io.micronaut.http.uri.UriBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
-import java.time.OffsetDateTime
-
 class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<FhirCodeSetImporterProviderServiceParameters>
-    implements MetadataHandling {
+    implements MetadataHandling, ImportDataHandling<CodeSet, FhirCodeSetImporterProviderServiceParameters> {
 
     private static List<String> NON_METADATA_KEYS = ['contains', 'id', 'name', 'description', 'publisher', 'codeSystem', 'compose']
 
@@ -70,20 +69,12 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
 
     @Override
     CodeSet updateImportedModelFromParameters(CodeSet importedModel, FhirCodeSetImporterProviderServiceParameters params, boolean list) {
-        if (importedModel.metadata.find {it.key == 'status'}.value == 'active') {
-            importedModel.finalised = true
-            importedModel.dateFinalised = importedModel.metadata.find {it.key == 'date'}.value as OffsetDateTime
-            importedModel.version = importedModel.metadata.find {it.key == 'version'}.value as Long
-        }
-        importedModel
+        updateFhirImportedModelFromParameters(importedModel, params, list)
     }
 
     @Override
     CodeSet checkImport(User currentUser, CodeSet importedModel, FhirCodeSetImporterProviderServiceParameters params) {
-        classifierService.checkClassifiers(currentUser, importedModel)
-        modelService.checkDocumentationVersion(importedModel, params.importAsNewDocumentationVersion, currentUser)
-        modelService.checkBranchModelVersion(importedModel, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
-        importedModel
+        checkFhirImport(currentUser, importedModel, params)
     }
 
     @Override

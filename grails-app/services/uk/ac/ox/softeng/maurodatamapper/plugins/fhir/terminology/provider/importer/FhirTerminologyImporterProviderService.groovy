@@ -19,6 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.impor
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
@@ -31,10 +32,8 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.Terminolog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
-import java.time.OffsetDateTime
-
 class FhirTerminologyImporterProviderService extends TerminologyImporterProviderService<FhirTerminologyImporterProviderServiceParameters>
-    implements MetadataHandling {
+    implements MetadataHandling, ImportDataHandling<Terminology, FhirTerminologyImporterProviderServiceParameters> {
 
     private static List<String> TERMINOLOGY_NON_METADATA_KEYS = ['id', 'name', 'description', 'publisher', 'concept']
     private static List<String> TERM_NON_METADATA_KEYS = ['code', 'definition', 'display']
@@ -66,20 +65,12 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
 
     @Override
     Terminology updateImportedModelFromParameters(Terminology importedModel, FhirTerminologyImporterProviderServiceParameters params, boolean list) {
-        if (importedModel.metadata.find {it.key == 'status'}.value == 'active') {
-            importedModel.finalised = true
-            importedModel.dateFinalised = importedModel.metadata.find {it.key == 'date'}.value as OffsetDateTime
-            importedModel.version = importedModel.metadata.find {it.key == 'version'}.value as Long
-        }
-        importedModel
+        updateFhirImportedModelFromParameters(importedModel, params, list)
     }
 
     @Override
     Terminology checkImport(User currentUser, Terminology importedModel, FhirTerminologyImporterProviderServiceParameters params) {
-        classifierService.checkClassifiers(currentUser, importedModel)
-        modelService.checkDocumentationVersion(importedModel, params.importAsNewDocumentationVersion, currentUser)
-        modelService.checkBranchModelVersion(importedModel, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
-        importedModel
+        checkFhirImport(currentUser, importedModel, params)
     }
 
     @Override
