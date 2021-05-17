@@ -5,7 +5,7 @@ model {
     CodeSet codeSet
 }
 
-Map<String,Object> fhirMetadata = codeSet.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer')
+Map<String, Object> fhirMetadata = codeSet.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset')
     .collectEntries {md -> [md.key, md.value]}
 
 Map<String,Object> extensions = [:]

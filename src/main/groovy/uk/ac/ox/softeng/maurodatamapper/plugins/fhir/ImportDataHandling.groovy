@@ -17,11 +17,14 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
+import uk.ac.ox.softeng.maurodatamapper.core.authority.Authority
+import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.core.container.ClassifierService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.Model
 import uk.ac.ox.softeng.maurodatamapper.core.model.ModelService
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.ModelImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.util.Version
 
@@ -35,6 +38,21 @@ trait ImportDataHandling<M extends Model, P extends ModelImporterProviderService
     abstract ClassifierService getClassifierService()
 
     abstract ModelService<M> getModelService()
+
+    abstract AuthorityService getAuthorityService()
+
+    Authority findOrCreateAuthority(Map data, FhirServerClient fhirServerClient, User currentUser) {
+        String label = data.publisher ?: fhirServerClient.getHostUri().host
+        if (!label) return null
+        Authority authority = authorityService.findByLabel(label)
+        if (!authority) {
+            authority = new Authority(label: label,
+                                      url: fhirServerClient.getHostUri().toString(),
+                                      createdBy: currentUser.emailAddress)
+            authorityService.save(authority)
+        }
+        authority
+    }
 
     M updateFhirImportedModelFromParameters(M importedModel, P params, boolean list) {
         if (importedModel.metadata.find {it.key == 'status'}.value == 'active') {
@@ -51,6 +69,7 @@ trait ImportDataHandling<M extends Model, P extends ModelImporterProviderService
 
     M checkFhirImport(User currentUser, M importedModel, P params) {
         classifierService.checkClassifiers(currentUser, importedModel)
+        modelService.checkAuthority(currentUser, importedModel, params.useDefaultAuthority)
         modelService.checkDocumentationVersion(importedModel, params.importAsNewDocumentationVersion, currentUser)
         modelService.checkBranchModelVersion(importedModel, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
         importedModel

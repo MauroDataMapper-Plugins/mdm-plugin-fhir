@@ -132,10 +132,14 @@ class FhirServerClient {
         retrieveMapFromClient('/CodeSystem/{entryId}?_format=json', [entryId: entryId])
     }
 
+    URI getHostUri() {
+        UriBuilder.of(hostUrl).build()
+    }
+
     private Map<String, Object> retrieveMapFromClient(String url, Map params) {
         try {
-            Flowable<Map> response = client.retrieve(HttpRequest.GET(UriBuilder.of
-            (url).expand(params)), Argument.of(Map, String, Object)) as Flowable<Map>
+            Flowable<Map> response = client.retrieve(HttpRequest.GET(UriBuilder.of(url)
+                                                                         .expand(params)), Argument.of(Map, String, Object)) as Flowable<Map>
             response.blockingFirst()
         }
         catch (HttpClientResponseException responseException) {

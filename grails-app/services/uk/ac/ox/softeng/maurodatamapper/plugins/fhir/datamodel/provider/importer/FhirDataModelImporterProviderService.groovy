@@ -19,6 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importe
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
+import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
@@ -40,6 +41,8 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
 
     private static List<String> NON_METADATA_KEYS = ['id', 'definition', 'description', 'min', 'max', 'alias', 'publisher', 'snapshot',
                                                      'differential']
+
+    AuthorityService authorityService
 
     @Autowired
     ApplicationContext applicationContext
@@ -131,7 +134,8 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         //log.trace('JSON\n{}', new JsonBuilder(data).toPrettyString())
 
         //dataModel initialisation
-        DataModel dataModel = new DataModel(label: data.id, description: data.description, organisation: data.publisher)
+        DataModel dataModel = new DataModel(label: data.id, description: data.description, organisation: data.publisher,
+                                            authority: findOrCreateAuthority(data, fhirServerClient, currentUser))
         if (data.alias) {
             dataModel.aliases = data.alias as List<String>
         }

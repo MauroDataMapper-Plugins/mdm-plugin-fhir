@@ -82,4 +82,9 @@ class FhirDataModelImporterProviderServiceParameters extends DataModelImporterPr
         hidden = true
     )
     String organisation
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    Boolean useDefaultAuthority = false
 }

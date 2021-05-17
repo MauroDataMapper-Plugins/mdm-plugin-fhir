@@ -83,4 +83,9 @@ class FhirTerminologyImporterProviderServiceParameters extends TerminologyImport
         hidden = true
     )
     String organisation
+
+    @ImportParameterConfig(
+        hidden = true
+    )
+    Boolean useDefaultAuthority = false
 }

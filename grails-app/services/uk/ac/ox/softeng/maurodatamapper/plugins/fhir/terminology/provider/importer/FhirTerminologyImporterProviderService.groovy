@@ -19,6 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.impor
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
+import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters
@@ -39,6 +40,7 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
     private static List<String> TERM_NON_METADATA_KEYS = ['code', 'definition', 'display']
 
     TerminologyService terminologyService
+    AuthorityService authorityService
 
     @Autowired
     ApplicationContext applicationContext
@@ -117,7 +119,8 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getCodeSystemEntry(terminologyName)
 
-        Terminology terminology = new Terminology(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
+        Terminology terminology = new Terminology(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name],
+                                                  authority: findOrCreateAuthority(data, fhirServerClient, currentUser))
         processMetadata(data, terminology, namespace, TERMINOLOGY_NON_METADATA_KEYS)
 
         data.concept.each {Map concept ->

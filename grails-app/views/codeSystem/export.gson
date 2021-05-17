@@ -4,7 +4,7 @@ model {
     Terminology terminology
 }
 
-Map<String,Object> fhirMetadata = terminology.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer')
+Map<String, Object> fhirMetadata = terminology.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology')
     .collectEntries {md -> [md.key, md.value]}
 
 Map<String,Object> extensions = [:]

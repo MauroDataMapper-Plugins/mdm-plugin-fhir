@@ -6,8 +6,8 @@ model {
 }
 
 json {
-    Map<String, Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer')
-        .collectEntries { md -> [md.key, md.value] }
+    Map<String, Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel')
+        .collectEntries {md -> [md.key, md.value]}
 
     resourceType fhirMetadata.resourceType
     id dataModel.label

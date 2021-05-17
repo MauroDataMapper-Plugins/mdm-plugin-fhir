@@ -52,7 +52,7 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
         then:
         result instanceof Map
-        result.total == 111
+        result.total == 113
         result.resourceType == 'Bundle'
         result.id
     }
@@ -66,7 +66,7 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
         then:
         result instanceof Map
-        result.total == 111
+        result.total == 113
         result.entry instanceof List
         result.entry.size() == 2
         result.entry.first().resource.id
@@ -169,7 +169,7 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
         then:
         result instanceof Map
-        result.total == 75
+        result.total == 76
         result.resourceType == 'Bundle'
         result.id
     }
@@ -183,7 +183,7 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
         then:
         result instanceof Map
-        result.total == 75
+        result.total == 76
         result.entry instanceof List
         result.entry.size() == 2
         result.entry.first().resource.id
@@ -286,7 +286,7 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
         then:
         result instanceof Map
-        result.total == 36
+        result.total == 37
         result.resourceType == 'Bundle'
         result.id
     }
@@ -300,7 +300,7 @@ class FhirServerClientSpec extends BaseIntegrationSpec {
 
         then:
         result instanceof Map
-        result.total == 36
+        result.total == 37
         result.entry instanceof List
         result.entry.size() == 2
         result.entry.first().resource.id
