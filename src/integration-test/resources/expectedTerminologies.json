@@ -1,0 +1,35 @@
+[
+  {
+    "name": "TerminologyJsonImporterService",
+    "version": "3.0",
+    "displayName": "JSON Terminology Importer",
+    "namespace": "uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer",
+    "allowsExtraMetadataKeys": true,
+    "knownMetadataKeys": [],
+    "providerType": "TerminologyImporter",
+    "paramClassType": "uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.parameter.TerminologyFileImporterProviderServiceParameters",
+    "canImportMultipleDomains": false
+  },
+  {
+    "name": "FhirTerminologyImporterService",
+    "version": "1.0.0-SNAPSHOT",
+    "displayName": "FHIR Server Terminology Importer",
+    "namespace": "uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer",
+    "allowsExtraMetadataKeys": true,
+    "knownMetadataKeys": [],
+    "providerType": "TerminologyImporter",
+    "paramClassType": "uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters",
+    "canImportMultipleDomains": false
+  },
+  {
+    "name": "TerminologyXmlImporterService",
+    "version": "3.0",
+    "displayName": "XML Terminology Importer",
+    "namespace": "uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer",
+    "allowsExtraMetadataKeys": true,
+    "knownMetadataKeys": [],
+    "providerType": "TerminologyImporter",
+    "paramClassType": "uk.ac.ox.softeng.maurodatamapper.terminology.provider.importer.parameter.TerminologyFileImporterProviderServiceParameters",
+    "canImportMultipleDomains": false
+  }
+]

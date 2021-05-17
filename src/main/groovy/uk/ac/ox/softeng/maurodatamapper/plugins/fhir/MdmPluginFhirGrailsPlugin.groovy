@@ -19,7 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
 import grails.plugins.Plugin
 
-class MdmPluginFHIRGrailsPlugin extends Plugin {
+class MdmPluginFhirGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "4.0.0 > *"
@@ -30,8 +30,8 @@ class MdmPluginFHIRGrailsPlugin extends Plugin {
 
     def title = "Mauro Data Mapper FHIR server Profile Plugin"
     // Headline display name of the plugin
-    def author = "Ikenna Ibeanu"
-    def authorEmail = "ikenna.ibeanu@ibctec.co.uk"
+    def author = "Oliver Freeman"
+    def authorEmail = "oliver.freeman@bdi.ox.ac.uk"
     def description = '''\
 The FHIR Server importer services  for the Mauro Data Mapper backend. 
 '''
@@ -48,17 +48,19 @@ The FHIR Server importer services  for the Mauro Data Mapper backend.
     def organization = [name: "Oxford University BRC Informatics", url: "www.ox.ac.uk"]
 
     // Any additional developers beyond the author specified above.
-    def developers = [[name: 'James Welch', email: 'james.welch@bdi.ox.ac.uk']]
+    def developers = [[name: 'James Welch', email: 'james.welch@bdi.ox.ac.uk'],
+                      [name: 'Ikenna Ibeanu', email: 'ikenna.ibeanu@ibctec.co.uk'],
+                      [name: 'Anthony Williams', email: 'anthony.williams@oxfordcc.co.uk']]
 
     // Location of the plugin's issue tracker.
     def issueManagement = [system: "YouTrack", url: "https://maurodatamapper.myjetbrains.com"]
 
     // Online location of the plugin's browseable source code.
-    def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugins-awsglue"]
+    def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugin-fhir"]
 
     def dependsOn = [
-            mdmCore           : '4.0.0 > *',
-            mdmPluginDatamodel: '4.0.0 > *',
+            mdmCore           : '4.2.0 > *',
+            mdmPluginDatamodel: '4.2.0 > *',
     ]
 
     Closure doWithSpring() {

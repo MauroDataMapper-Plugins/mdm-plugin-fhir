@@ -1,0 +1,7 @@
+model {
+    Map<String, Object> referenceMap
+}
+
+json {
+    reference referenceMap.find { it.key == 'reference' }.value
+}

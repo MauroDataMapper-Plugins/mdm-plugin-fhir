@@ -1,0 +1,166 @@
+import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.traits.domain.MultiplicityAware
+
+model {
+    ModelItem modelItem
+}
+
+static String buildId(ModelItem modelItem) {
+    if (modelItem instanceof DataClass) {
+        DataClass dc = modelItem as DataClass
+        if (dc.parentDataClass) return "${buildId(dc.parentDataClass)}.${dc.label}"
+        return dc.label
+    }
+    if (modelItem instanceof DataElement) {
+        DataElement de = modelItem as DataElement
+        return "${buildId(de.dataClass)}.${de.label}"
+    }
+}
+
+json {
+    id buildId(modelItem)
+    definition modelItem.description
+    MultiplicityAware multiplicityItem = modelItem as MultiplicityAware
+    min multiplicityItem.minMultiplicity
+    if (multiplicityItem.maxMultiplicity == -1) {
+        max '*'
+    } else {
+        max multiplicityItem.maxMultiplicity
+    }
+
+    Map<String, Object> modelItemMetadata = modelItem.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel')
+        .collectEntries {md -> [md.key, md.value]}
+
+    if (modelItemMetadata.any {it.key.startsWith('extension')}) {
+        Map<String, Object> extensionInfo = modelItemMetadata.findAll {it.key.startsWith('extension')}
+            .groupBy {it.key.split('\\.').first()}
+            .collectEntries {k, v ->
+                [k, v.collectEntries {String k2, v2 -> [k2.replace("${k}.", ''), v2]}]
+            } as Map<String, Object>
+        List<Map> extensions = extensionInfo.collect {it.value} as List<Map>
+        extension tmpl.'/snapshot/extension'("extensionMap", extensions)
+    }
+
+    path modelItemMetadata.path
+    sliceName modelItemMetadata.sliceName
+    if (modelItemMetadata.any { it.key.startsWith('slicing') }) {
+        Map<String, Object> slicingInfo = modelItemMetadata.findAll { it.key.startsWith('slicing') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> slicings = slicingInfo.collect { it.value } as List<Map>
+        slicing tmpl.'/snapshot/slicing'("slicingMap", slicings)
+    }
+    representation modelItemMetadata.representation
+    call('short', modelItemMetadata['short'])
+
+    if (modelItem.aliases) {
+        alias modelItem.aliases
+    }
+
+    comment modelItemMetadata.comment
+    requirements modelItemMetadata.requirements
+
+    condition modelItemMetadata.condition ? [modelItemMetadata.condition] : modelItemMetadata
+        .findAll { it.key.startsWith('condition') }.collect { it.value }
+
+    if (modelItemMetadata.any { it.key.startsWith('type') }) {
+        Map<String, Object> typeInfo = modelItemMetadata.findAll { it.key.startsWith('type') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> types = typeInfo.collect { it.value } as List<Map>
+        type tmpl.'/snapshot/type'("typeMap", types)
+    }
+
+    if (modelItemMetadata.any { it.key == 'fixedCode' }) {
+        fixedCode modelItemMetadata.fixedCode
+    }
+
+    if (modelItemMetadata.any { it.key == 'fixedString' }) {
+        fixedString modelItemMetadata.fixedString
+    }
+
+
+    if (modelItemMetadata.any { it.key == 'fixedUri' }) {
+        fixedUri modelItemMetadata.fixedUri
+    }
+
+    if (modelItemMetadata.any { it.key == 'meaningWhenMissing' }) {
+        meaningWhenMissing modelItemMetadata.meaningWhenMissing
+    }
+
+    if (modelItemMetadata.any { it.key == 'defaultValueBoolean' }) {
+        defaultValueBoolean modelItemMetadata.defaultValueBoolean
+    }
+
+    if (modelItemMetadata.any { it.key.startsWith('example') }) {
+        Map<String, Object> exampleInfo = modelItemMetadata.findAll { it.key.startsWith('example') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> examples = exampleInfo.collect { it.value } as List<Map>
+        example tmpl.'/snapshot/example'("exampleMap", examples)
+    }
+
+    if (modelItemMetadata.any { it.key.startsWith('base') }) {
+        Map<String, Object> baseInfo = modelItemMetadata.findAll { it.key.startsWith('base') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> bases = baseInfo.collect { it.value } as List<Map>
+        base tmpl.'/snapshot/base'("baseMap", bases)
+    }
+
+    if (modelItemMetadata.any { it.key == 'contentReference' }) {
+        contentReference modelItemMetadata.contentReference
+    }
+
+    if (modelItemMetadata.any { it.key.startsWith('constraint') }) {
+        Map<String, Object> constraintInfo = modelItemMetadata.findAll { it.key.startsWith('constraint') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> constraints = constraintInfo.collect { it.value } as List<Map>
+        constraint tmpl.'/snapshot/constraint'("constraintMap", constraints)
+    }
+
+    if (modelItemMetadata.any { it.key == 'isModifier' }) {
+        isModifier modelItemMetadata.isModifier
+    }
+    if (modelItemMetadata.any { it.key == 'mustSupport' }) {
+        mustSupport modelItemMetadata.mustSupport
+    }
+    call('isSummary', modelItemMetadata['isSummary'])
+
+    if (modelItemMetadata.any { it.key.startsWith('binding') }) {
+        Map<String, Object> bindingInfo = modelItemMetadata.findAll { it.key.startsWith('binding') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> bindings = bindingInfo.collect { it.value } as List<Map>
+        binding tmpl.'/snapshot/binding'("bindingMap", bindings)
+    }
+
+    if (modelItemMetadata.any { it.key == 'contentReference' }) {
+        contentReference modelItemMetadata.contentReference
+    }
+
+    if (modelItemMetadata.any { it.key.startsWith('mapping') }) {
+        Map<String, Object> mappingInfo = modelItemMetadata.findAll { it.key.startsWith('mapping') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> mappings = mappingInfo.collect { it.value } as List<Map>
+        mapping tmpl.'/snapshot/mapping'("mappingMap", mappings)
+    }
+}

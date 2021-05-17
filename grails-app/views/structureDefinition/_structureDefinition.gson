@@ -1,0 +1,59 @@
+import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+
+model {
+    DataModel dataModel
+}
+
+json {
+    Map<String, Object> fhirMetadata = dataModel.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel')
+        .collectEntries {md -> [md.key, md.value]}
+
+    resourceType fhirMetadata.resourceType
+    id dataModel.label
+    url fhirMetadata.url
+    if (fhirMetadata.version) {
+        version fhirMetadata.version
+    } else if (dataModel.version) {
+        version dataModel.version
+    }
+    name fhirMetadata.name
+    status fhirMetadata.status
+    if (fhirMetadata.date) {
+        date fhirMetadata.date
+    } else if (dataModel.dateFinalised) {
+        date dataModel.dateFinalised
+    }
+    publisher dataModel.organisation
+
+    if (fhirMetadata.any { it.key.startsWith('contact') }) {
+        Map<String, Object> contactInfo = fhirMetadata.findAll { it.key.startsWith('contact') }
+            .groupBy { it.key.split('\\.').first() }
+            .collectEntries { k, v ->
+                [k, v.collectEntries { String k2, v2 -> [k2.replace("${k}.", ''), v2] }]
+            } as Map<String, Object>
+        List<Map> contacts = contactInfo.collect { it.value } as List<Map>
+        contact tmpl.'/contact/contact'("contactMap", contacts)
+    }
+
+    if (dataModel.aliases) {
+        alias dataModel.aliases
+    }
+
+    description dataModel.description
+    purpose fhirMetadata.purpose
+    copyright fhirMetadata.copyright
+    fhirVersion fhirMetadata.fhirVersion
+    kind fhirMetadata.kind
+    call('abstract', fhirMetadata['abstract'])
+    type fhirMetadata.type
+    baseDefinition fhirMetadata.baseDefinition
+    derivation fhirMetadata.derivation
+
+    snapshot {
+        List<ModelItem> elements = []
+        elements.addAll(dataModel.dataClasses)
+        elements.addAll(dataModel.getAllDataElements())
+        element tmpl.'/snapshot/element'('modelItem', elements)
+    }
+}

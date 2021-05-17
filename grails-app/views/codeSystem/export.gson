@@ -1,0 +1,35 @@
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+
+model {
+    Terminology terminology
+}
+
+Map<String, Object> fhirMetadata = terminology.findMetadataByNamespace('uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology')
+    .collectEntries {md -> [md.key, md.value]}
+
+Map<String,Object> extensions = [:]
+fhirMetadata.findAll {it.key.startsWith('extension.')}.each { key, val ->
+    extensions[key.substring(10)] = val
+}
+
+json {
+    resourceType "CodeSystem"
+    id terminology.label
+    if (extensions) extension g.render([extensions])
+    if (fhirMetadata.url) url fhirMetadata.url
+    if (fhirMetadata.version) version fhirMetadata.version
+    name terminology.aliases[0]
+    if (fhirMetadata.title) title fhirMetadata.title
+    if (fhirMetadata.status) status fhirMetadata.status
+    if (fhirMetadata.date) date fhirMetadata.date
+    if (terminology.organisation) publisher terminology.organisation
+    if (terminology.description) description terminology.description
+    if (fhirMetadata.copyright) copyright fhirMetadata.copyright
+    if (fhirMetadata.caseSensitive) caseSensitive fhirMetadata.caseSensitive.toString().toBoolean()
+    if (fhirMetadata.content) content fhirMetadata.content
+
+    if (terminology.terms) {
+        concept tmpl.concept(terminology.terms)
+    }
+
+}

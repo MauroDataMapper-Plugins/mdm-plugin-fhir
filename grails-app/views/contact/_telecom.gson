@@ -1,0 +1,10 @@
+model {
+    Map<String,Object> telecomMap
+}
+
+json {
+
+    system telecomMap.find { it.key == 'system' }.value
+    value telecomMap.find { it.key == 'value' }.value
+    call('use', telecomMap.find { it.key == 'use' }.value)
+}

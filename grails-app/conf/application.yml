@@ -7,6 +7,15 @@ apiUser:
     username: admin@maurodatamapper.com
     password: password
 ---
+micronaut:
+    codec:
+        json:
+            additional-types:
+                - 'application/json+fhir;charset=utf-8'
+    http:
+        client:
+            max-content-length: 33554430
+            read-timeout: 30
 #Default for plugins/applications
 ---
 maurodatamapper:
@@ -148,7 +157,7 @@ environments:
     test:
         spring.flyway.enabled: false
         database:
-            name: 'mpa'
+            name: 'mpf'
             creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS DATAMODEL\;CREATE SCHEMA IF NOT EXISTS TERMINOLOGY'
         dataSource:
             driverClassName: org.h2.Driver

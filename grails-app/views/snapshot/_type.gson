@@ -1,0 +1,13 @@
+model {
+    Map<String, Object> typeMap
+}
+
+json {
+    code typeMap.find { it.key == 'code' }.value
+    if (typeMap.any { it.key == 'targetProfile' }) {
+        targetProfile typeMap.targetProfile
+    }
+    if (typeMap.any { it.key == 'profile' }) {
+        profile typeMap.profile
+    }
+}

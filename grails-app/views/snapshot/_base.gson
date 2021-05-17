@@ -1,0 +1,9 @@
+model {
+    Map<String, Object> baseMap
+}
+
+json {
+    path baseMap.find { it.key == 'path' }.value
+    min baseMap.find { it.key == 'min' }.value
+    max baseMap.find { it.key == 'max' }.value
+}

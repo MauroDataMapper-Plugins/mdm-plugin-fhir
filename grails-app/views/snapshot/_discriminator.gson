@@ -1,0 +1,8 @@
+model {
+    Map<String, Object> discriminatorMap
+}
+
+json {
+    type discriminatorMap.type
+    path discriminatorMap.path
+}
