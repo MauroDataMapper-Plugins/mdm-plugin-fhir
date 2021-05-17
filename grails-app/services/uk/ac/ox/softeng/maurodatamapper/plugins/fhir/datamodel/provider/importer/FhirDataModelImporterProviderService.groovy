@@ -55,6 +55,11 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     }
 
     @Override
+    String getNamespace() {
+        'uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel'
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }

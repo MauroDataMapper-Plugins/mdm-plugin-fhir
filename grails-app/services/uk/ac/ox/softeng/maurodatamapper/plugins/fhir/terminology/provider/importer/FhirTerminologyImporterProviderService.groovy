@@ -54,6 +54,11 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
     }
 
     @Override
+    String getNamespace() {
+        'uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology'
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }

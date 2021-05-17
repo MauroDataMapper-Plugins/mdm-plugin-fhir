@@ -54,6 +54,11 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
     }
 
     @Override
+    String getNamespace() {
+        'uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset'
+    }
+
+    @Override
     ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet) throws ApiException {
         exportModel(codeSet, fileType)
     }

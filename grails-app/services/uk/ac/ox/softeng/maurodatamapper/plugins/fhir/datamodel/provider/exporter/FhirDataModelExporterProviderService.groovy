@@ -55,6 +55,11 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
     }
 
     @Override
+    String getNamespace() {
+        'uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel'
+    }
+
+    @Override
     String getExportViewPath() {
         '/structureDefinition/export'
     }

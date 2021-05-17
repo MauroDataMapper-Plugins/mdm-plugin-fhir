@@ -54,6 +54,11 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
     }
 
     @Override
+    String getNamespace() {
+        'uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology'
+    }
+
+    @Override
     ByteArrayOutputStream exportTerminology(User currentUser, Terminology terminology) throws ApiException {
         exportModel(terminology, fileType)
     }

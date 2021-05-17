@@ -58,6 +58,11 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
     }
 
     @Override
+    String getNamespace() {
+        'uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset'
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }
