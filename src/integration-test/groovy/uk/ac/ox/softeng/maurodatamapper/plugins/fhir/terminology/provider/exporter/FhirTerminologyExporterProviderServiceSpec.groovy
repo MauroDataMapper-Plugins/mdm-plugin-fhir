@@ -17,7 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter
 
-import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
+import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.exporter.FhirTerminologyExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.parameter.FhirTerminologyImporterProviderServiceParameters

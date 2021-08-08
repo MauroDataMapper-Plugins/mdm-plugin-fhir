@@ -19,7 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter
 
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
-import uk.ac.ox.softeng.maurodatamapper.core.diff.ObjectDiff
+import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter.FhirCodeSetExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
@@ -66,7 +66,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
     Path exportedResourcesPath
 
     @Shared
-    Path terminologyResourcesPath    
+    Path terminologyResourcesPath
 
     @OnceBefore
     void setupServerClient() {
@@ -74,7 +74,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'value_sets').toAbsolutePath()
 
         terminologyResourcesPath =
-            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()            
+            Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()
         exportedResourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'value_sets', 'exported')
                 .toAbsolutePath()
@@ -96,7 +96,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
     void setupDomainData() {
         folder = new Folder(label: 'catalogue', createdBy: StandardEmailAddress.INTEGRATION_TEST)
         checkAndSave(folder)
-    }    
+    }
 
     @Unroll
     def 'CC01: verify exported CodeSet JSON content - "#entryId"'() {
@@ -134,7 +134,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
 
         when: 'the CodeSet is imported from Json'
         CodeSet imported = fhirCodeSetImporterProviderService.importDomain(admin, parameters)
-        
+
         then: 'it is imported with the correct label'
         imported
         imported.label == entryId
@@ -188,7 +188,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
         Path testFilePath = terminologyResourcesPath.resolve("${filename}").toAbsolutePath()
         assert Files.exists(testFilePath)
         Files.readString(testFilePath)
-    }    
+    }
 
     void validateExportedModel(String entryId, String exportedModel) {
         assert exportedModel, 'There must be an exported model string'
@@ -227,5 +227,5 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
             throw new ValidationException("Domain object is not valid. Has ${terminology.errors.errorCount} errors", terminology.errors)
         }
         terminologyService.saveModelWithContent(terminology)
-    }    
+    }
 }

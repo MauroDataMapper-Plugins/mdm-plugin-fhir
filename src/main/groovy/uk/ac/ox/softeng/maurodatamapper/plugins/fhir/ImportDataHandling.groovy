@@ -26,7 +26,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.model.ModelService
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.ModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
-import uk.ac.ox.softeng.maurodatamapper.util.Version
+import uk.ac.ox.softeng.maurodatamapper.version.Version
 
 import java.time.OffsetDateTime
 
@@ -62,7 +62,7 @@ trait ImportDataHandling<M extends Model, P extends ModelImporterProviderService
                                              importedModel.metadata.find {it.key == 'meta.lastUpdated'}
 
             importedModel.dateFinalised = OffsetDateTime.parse(finalisedDateMetadata.value)
-            importedModel.modelVersion = Version.from(importedModel.metadata.find {it.key == 'version'}.value)
+            importedModel.modelVersion = Version.from(importedModel.metadata.find { it.key == 'version' }.value)
         }
         importedModel
     }

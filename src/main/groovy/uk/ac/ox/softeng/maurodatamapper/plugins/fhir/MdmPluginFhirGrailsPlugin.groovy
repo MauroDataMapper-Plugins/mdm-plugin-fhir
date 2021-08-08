@@ -59,8 +59,8 @@ The FHIR Server importer services  for the Mauro Data Mapper backend.
     def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugin-fhir"]
 
     def dependsOn = [
-            mdmCore           : '4.2.0 > *',
-            mdmPluginDatamodel: '4.2.0 > *',
+        mdmCore           : '4.8.0 > *',
+        mdmPluginDatamodel: '4.8.0 > *',
     ]
 
     Closure doWithSpring() {
