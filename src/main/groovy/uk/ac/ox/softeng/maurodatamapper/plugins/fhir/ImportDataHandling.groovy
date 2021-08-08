@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2021 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.model.ModelService
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.ModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
-import uk.ac.ox.softeng.maurodatamapper.util.Version
+import uk.ac.ox.softeng.maurodatamapper.version.Version
 
 import java.time.OffsetDateTime
 
@@ -62,7 +62,7 @@ trait ImportDataHandling<M extends Model, P extends ModelImporterProviderService
                                              importedModel.metadata.find {it.key == 'meta.lastUpdated'}
 
             importedModel.dateFinalised = OffsetDateTime.parse(finalisedDateMetadata.value)
-            importedModel.modelVersion = Version.from(importedModel.metadata.find {it.key == 'version'}.value)
+            importedModel.modelVersion = Version.from(importedModel.metadata.find { it.key == 'version' }.value)
         }
         importedModel
     }

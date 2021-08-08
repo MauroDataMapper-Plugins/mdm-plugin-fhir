@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2021 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,8 +59,8 @@ The FHIR Server importer services  for the Mauro Data Mapper backend.
     def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugin-fhir"]
 
     def dependsOn = [
-            mdmCore           : '4.2.0 > *',
-            mdmPluginDatamodel: '4.2.0 > *',
+        mdmCore           : '4.8.0 > *',
+        mdmPluginDatamodel: '4.8.0 > *',
     ]
 
     Closure doWithSpring() {
