@@ -3,10 +3,7 @@ database:
     port: 5432
     name: maurodatamapper
 ---
-apiUser:
-    username: admin@maurodatamapper.com
-    password: password
----
+
 micronaut:
     codec:
         json:
@@ -145,7 +142,7 @@ hibernate:
             provider: org.ehcache.jsr107.EhcacheCachingProvider
             missing_cache_strategy: create
     search:
-        default.indexBase: '/tmp/lucene/plugin/fhir'
+        backend.directory.root: 'build/lucene'
 
 ---
 dataSource:

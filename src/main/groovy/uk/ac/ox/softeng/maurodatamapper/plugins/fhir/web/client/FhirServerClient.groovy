@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,17 @@ import io.micronaut.core.annotation.AnnotationMetadataResolver
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
-import io.micronaut.http.client.DefaultHttpClient
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.HttpClientConfiguration
 import io.micronaut.http.client.LoadBalancer
 import io.micronaut.http.client.exceptions.HttpClientResponseException
-import io.micronaut.http.client.ssl.NettyClientSslBuilder
+import io.micronaut.http.client.netty.DefaultHttpClient
+import io.micronaut.http.client.netty.ssl.NettyClientSslBuilder
 import io.micronaut.http.codec.MediaTypeCodecRegistry
 import io.micronaut.http.exceptions.HttpException
 import io.micronaut.http.uri.UriBuilder
 import io.netty.channel.MultithreadEventLoopGroup
 import io.netty.util.concurrent.DefaultThreadFactory
-import io.reactivex.Flowable
 import org.springframework.context.ApplicationContext
 
 import java.util.concurrent.ThreadFactory
@@ -86,13 +85,14 @@ class FhirServerClient {
                      MediaTypeCodecRegistry mediaTypeCodecRegistry) {
         this.hostUrl = hostUrl
         this.versionPath = versionPath
-        client = new DefaultHttpClient(LoadBalancer.fixed(hostUrl.toURL()),
+        client = new DefaultHttpClient(LoadBalancer.fixed(hostUrl.toURL().toURI()),
                                        httpClientConfiguration,
                                        versionPath,
                                        threadFactory,
                                        nettyClientSslBuilder,
                                        mediaTypeCodecRegistry,
-                                       AnnotationMetadataResolver.DEFAULT)
+                                       AnnotationMetadataResolver.DEFAULT,
+                                       Collections.emptyList())
         log.debug('Client created to connect to {}', hostUrl)
     }
 
@@ -138,9 +138,8 @@ class FhirServerClient {
 
     private Map<String, Object> retrieveMapFromClient(String url, Map params) {
         try {
-            Flowable<Map> response = client.retrieve(HttpRequest.GET(UriBuilder.of(url)
-                                                                         .expand(params)), Argument.of(Map, String, Object)) as Flowable<Map>
-            response.blockingFirst()
+            client.toBlocking().retrieve(HttpRequest.GET(UriBuilder.of(url)
+                                                                         .expand(params)), Argument.of(Map, String, Object))
         }
         catch (HttpClientResponseException responseException) {
             String fullUrl = UriBuilder.of(hostUrl).path(versionPath).path(url).expand(params).toString()
