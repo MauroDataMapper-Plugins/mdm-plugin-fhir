@@ -25,6 +25,8 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.provider.importer.DataModelImporterProviderService
+import uk.ac.ox.softeng.maurodatamapper.path.Path
+import uk.ac.ox.softeng.maurodatamapper.path.PathNode
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.datamodel.provider.importer.parameter.FhirDataModelImporterProviderServiceParameters
@@ -202,12 +204,20 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
         List<String> keySections = dataClassKey.tokenize('.')
         keySections.removeLast()
         if (!keySections) return null
-        String parentDataClass = keySections.join('.')
+        Path parentDataClassPath = buildDataClassPath(dataModel.path, keySections)
         dataModel.dataClasses.find {dataClass ->
-            if (parentDataClass == dataClass.path) {
+            if (parentDataClassPath == dataClass.path) {
                 dataClass
             }
         }
+    }
+
+    private static Path buildDataClassPath(Path dataModelPath, List<String> dataClassLabelsInPath){
+        Path path = Path.from(dataModelPath.last())
+        dataClassLabelsInPath.each{
+            path.addToPathNodes('dc', it, false)
+        }
+        path
     }
 
     private void processDataClass(Map dataset, DataClass parentDataClass, DataModel dataModel) {
