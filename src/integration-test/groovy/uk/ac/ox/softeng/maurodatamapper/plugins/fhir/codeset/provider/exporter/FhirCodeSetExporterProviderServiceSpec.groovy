@@ -37,6 +37,7 @@ import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
+import grails.testing.spock.RunOnce
 import grails.util.BuildSettings
 import grails.validation.ValidationException
 import groovy.util.logging.Slf4j
@@ -68,8 +69,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
     @Shared
     Path terminologyResourcesPath
 
-    @OnceBefore
-    void setupServerClient() {
+    def setupSpec() {
         resourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'value_sets').toAbsolutePath()
 

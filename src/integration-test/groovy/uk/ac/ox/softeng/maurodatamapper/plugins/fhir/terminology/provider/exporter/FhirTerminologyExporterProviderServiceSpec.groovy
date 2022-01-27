@@ -55,8 +55,7 @@ class FhirTerminologyExporterProviderServiceSpec extends BaseFunctionalSpec impl
     @Shared
     Path exportedResourcesPath
 
-    @OnceBefore
-    void setupServerClient() {
+    def setupSpec() {
         resourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()
         exportedResourcesPath =

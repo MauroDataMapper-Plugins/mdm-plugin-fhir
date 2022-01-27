@@ -52,8 +52,7 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
     @Shared
     Path resourcesPath
 
-    @OnceBefore
-    void setupServerClient() {
+    def setupSpec() {
         resourcesPath =
             Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'code_systems').toAbsolutePath()
         ersatz = new ErsatzServer()
