@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
+import grails.testing.spock.RunOnce
 import grails.util.BuildSettings
 import grails.validation.ValidationException
 import groovy.json.JsonSlurper
@@ -53,8 +54,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
     @Shared
     Path resourcesPath
 
-    @OnceBefore
-    void setupServerClient() {
+    def setupSpec() {
         resourcesPath =
                 Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources', 'structure_definitions').toAbsolutePath()
         ersatz = new ErsatzServer()

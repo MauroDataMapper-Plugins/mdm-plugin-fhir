@@ -42,7 +42,8 @@ json {
     if (fhirMetadata.content) content fhirMetadata.content
 
     if (terminologies) {
-        compose tmpl.compose(terminologies: terminologies)
+        // Compose is a now a protected groovy closure method
+        call 'compose', g.render(template: 'compose', model: [terminologies: terminologies])
     }
 
 }
