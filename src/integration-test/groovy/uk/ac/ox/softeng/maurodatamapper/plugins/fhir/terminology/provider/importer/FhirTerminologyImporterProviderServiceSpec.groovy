@@ -28,7 +28,6 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
-import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import grails.validation.ValidationException
 import groovy.util.logging.Slf4j

@@ -17,9 +17,6 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.bootstrap.BootstrapModels
-
 class BootStrap {
 
     def init = { servletContext ->
