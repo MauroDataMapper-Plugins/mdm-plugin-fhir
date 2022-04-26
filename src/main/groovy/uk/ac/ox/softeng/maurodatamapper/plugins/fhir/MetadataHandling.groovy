@@ -27,15 +27,15 @@ trait MetadataHandling {
 
     void processMetadata(Map<String, Object> dataset, CatalogueItem dataItem, String namespace, List<String> nonMetadataKeys) {
         dataset.each {key, value ->
-            if (!(key in nonMetadataKeys)) {
-                if (!(value instanceof String || value instanceof Integer || value instanceof Boolean)) {
-                    processNestedMetadata(key, value, dataItem, namespace)
-                } else {
+            if (key !in nonMetadataKeys) {
+                if (value instanceof String || value instanceof Integer || value instanceof Boolean) {
                     dataItem.addToMetadata(
                         namespace: namespace,
                         key: key,
                         value: value.toString()
                     )
+                } else {
+                    processNestedMetadata(key, value, dataItem, namespace)
                 }
             }
         }
