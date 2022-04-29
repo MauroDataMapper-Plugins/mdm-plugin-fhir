@@ -20,7 +20,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter.FhirCodeSetExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
@@ -36,8 +35,6 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
-import grails.testing.spock.OnceBefore
-import grails.testing.spock.RunOnce
 import grails.util.BuildSettings
 import grails.validation.ValidationException
 import groovy.util.logging.Slf4j
@@ -161,7 +158,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
         reImported
 
         when: 'differences between the import and reimport are determined'
-        ObjectDiff od = codeSetService.getDiffForModels(imported, reImported)
+        ObjectDiff od = imported.diff(reImported, null)
 
         then: 'there are no differences'
         od.getNumberOfDiffs() == 0

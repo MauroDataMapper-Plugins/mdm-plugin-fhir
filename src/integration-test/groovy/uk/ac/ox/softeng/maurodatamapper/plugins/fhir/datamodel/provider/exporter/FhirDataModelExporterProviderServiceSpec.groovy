@@ -28,8 +28,6 @@ import uk.ac.ox.softeng.maurodatamapper.test.json.JsonComparer
 import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
-import grails.testing.spock.OnceBefore
-import grails.testing.spock.RunOnce
 import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
 import org.junit.Assert
@@ -141,7 +139,7 @@ class FhirDataModelExporterProviderServiceSpec extends BaseFunctionalSpec implem
         reImported
 
         when: 'differences between the import and reimport are determined'
-        ObjectDiff od = dataModelService.getDiffForModels(imported, reImported)
+        ObjectDiff od = imported.diff reImported, null
 
         then: 'there are no differences'
         od.getNumberOfDiffs() == 0
