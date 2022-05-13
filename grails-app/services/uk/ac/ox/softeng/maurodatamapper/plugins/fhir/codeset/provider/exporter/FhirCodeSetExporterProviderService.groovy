@@ -59,7 +59,7 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
     }
 
     @Override
-    ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet) throws ApiException {
+    ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet, Map<String, Object> parameters) throws ApiException {
         exportModel(codeSet, fileType)
     }
 
@@ -80,11 +80,11 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
     }
 
     @Override
-    ByteArrayOutputStream exportCodeSets(User currentUser, List<CodeSet> codeSets) throws ApiException {
+    ByteArrayOutputStream exportCodeSets(User currentUser, List<CodeSet> codeSets, Map<String, Object> parameters) throws ApiException {
         throw new ApiBadRequestException('CSE01', "${getName()} cannot export multiple CodeSets")
     }
 
     static String getExportViewPath() {
         '/valueSet/export'
-    }   
+    }
 }

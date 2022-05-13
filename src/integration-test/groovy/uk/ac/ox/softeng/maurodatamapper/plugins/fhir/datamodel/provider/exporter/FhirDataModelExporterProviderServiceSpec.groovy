@@ -118,7 +118,7 @@ class FhirDataModelExporterProviderServiceSpec extends BaseFunctionalSpec implem
         imported.label == entryId
 
         when: 'the imported DataModel is exported'
-        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelExporterProviderService.exportDataModel(admin, imported))
+        ByteArrayOutputStream exportedJsonBytes = (fhirDataModelExporterProviderService.exportDataModel(admin, imported, [:]))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then: 'the exported Json is correct'

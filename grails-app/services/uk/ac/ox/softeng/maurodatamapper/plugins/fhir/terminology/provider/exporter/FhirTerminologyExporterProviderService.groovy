@@ -59,7 +59,7 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
     }
 
     @Override
-    ByteArrayOutputStream exportTerminology(User currentUser, Terminology terminology) throws ApiException {
+    ByteArrayOutputStream exportTerminology(User currentUser, Terminology terminology, Map<String, Object> parameters) throws ApiException {
         exportModel(terminology, fileType)
     }
 
@@ -80,7 +80,7 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
     }
 
     @Override
-    ByteArrayOutputStream exportTerminologies(User currentUser, List<Terminology> terminology) throws ApiException {
+    ByteArrayOutputStream exportTerminologies(User currentUser, List<Terminology> terminology, Map<String, Object> parameters) throws ApiException {
         throw new ApiBadRequestException('TES01', "${getName()} cannot export multiple Terminologies")
     }
 

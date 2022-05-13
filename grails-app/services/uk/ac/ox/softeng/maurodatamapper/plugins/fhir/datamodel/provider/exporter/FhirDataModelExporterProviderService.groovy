@@ -65,7 +65,7 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
     }
 
     @Override
-    ByteArrayOutputStream exportDataModel(User currentUser, DataModel dataModel) throws ApiException {
+    ByteArrayOutputStream exportDataModel(User currentUser, DataModel dataModel, Map<String, Object> parameters) throws ApiException {
         exportModel(dataModel, fileType)
     }
 
@@ -86,7 +86,7 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
     }
 
     @Override
-    ByteArrayOutputStream exportDataModels(User currentUser, List<DataModel> dataModel) throws ApiException {
+    ByteArrayOutputStream exportDataModels(User currentUser, List<DataModel> dataModel, Map<String, Object> parameters) throws ApiException {
         throw new ApiBadRequestException('JES01', "${getName()} cannot export multiple DataModels")
     }
 }
