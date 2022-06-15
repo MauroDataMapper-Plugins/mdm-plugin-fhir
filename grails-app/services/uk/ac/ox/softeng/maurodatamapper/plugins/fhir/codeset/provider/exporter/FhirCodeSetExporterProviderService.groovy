@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService {
 
+    public static final String CONTENT_TYPE = 'application/fhir+json'
+
     @Autowired
     JsonViewTemplateEngine templateEngine
 
@@ -39,8 +41,8 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
     }
 
     @Override
-    String getFileType() {
-        'text/json'
+    String getContentType() {
+        CONTENT_TYPE
     }
 
     @Override
@@ -60,7 +62,7 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
 
     @Override
     ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet, Map<String, Object> parameters) throws ApiException {
-        exportModel(codeSet, fileType)
+        exportModel(codeSet, contentType)
     }
 
     ByteArrayOutputStream exportModel(CodeSet codeSet, String format) {

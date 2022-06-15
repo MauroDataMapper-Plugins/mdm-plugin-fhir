@@ -25,6 +25,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.facet.Rule
 import uk.ac.ox.softeng.maurodatamapper.core.facet.rule.RuleRepresentation
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.ImportDataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.exporter.FhirCodeSetExporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.parameter.FhirCodeSetImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.web.client.FhirServerClient
 import uk.ac.ox.softeng.maurodatamapper.security.User
@@ -63,6 +64,11 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
     @Override
     String getNamespace() {
         'uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset'
+    }
+
+    @Override
+    Boolean handlesContentType(String contentType) {
+        contentType.equalsIgnoreCase(FhirCodeSetExporterProviderService.CONTENT_TYPE)
     }
 
     @Override

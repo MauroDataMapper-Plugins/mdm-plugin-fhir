@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class FhirTerminologyExporterProviderService extends TerminologyExporterProviderService {
 
+    public static final String CONTENT_TYPE = 'application/fhir+json'
+
     @Autowired
     JsonViewTemplateEngine templateEngine
 
@@ -39,8 +41,8 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
     }
 
     @Override
-    String getFileType() {
-        'text/json'
+    String getContentType() {
+        CONTENT_TYPE
     }
 
     @Override
@@ -60,7 +62,7 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
 
     @Override
     ByteArrayOutputStream exportTerminology(User currentUser, Terminology terminology, Map<String, Object> parameters) throws ApiException {
-        exportModel(terminology, fileType)
+        exportModel(terminology, contentType)
     }
 
     ByteArrayOutputStream exportModel(Terminology terminology, String format) {

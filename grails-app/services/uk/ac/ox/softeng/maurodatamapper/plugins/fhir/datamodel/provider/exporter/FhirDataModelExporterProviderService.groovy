@@ -31,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class FhirDataModelExporterProviderService extends DataModelExporterProviderService implements TemplateBasedExporter {
 
+    public static final String CONTENT_TYPE = 'application/fhir+json'
+
     @Autowired
     JsonViewTemplateEngine templateEngine
 
@@ -40,8 +42,8 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
     }
 
     @Override
-    String getFileType() {
-        'text/json'
+    String getContentType() {
+        CONTENT_TYPE
     }
 
     @Override
@@ -66,7 +68,7 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
 
     @Override
     ByteArrayOutputStream exportDataModel(User currentUser, DataModel dataModel, Map<String, Object> parameters) throws ApiException {
-        exportModel(dataModel, fileType)
+        exportModel(dataModel, contentType)
     }
 
     ByteArrayOutputStream exportModel(DataModel dataModel, String format) {
