@@ -119,7 +119,7 @@ class FhirTerminologyExporterProviderServiceSpec extends BaseFunctionalSpec impl
         imported.label == entryId
 
         when: 'the imported Terminology is exported'
-        ByteArrayOutputStream exportedJsonBytes = (fhirTerminologyExporterProviderService.exportTerminology(admin, imported))
+        ByteArrayOutputStream exportedJsonBytes = (fhirTerminologyExporterProviderService.exportTerminology(admin, imported, [:]))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then: 'the exported Json is correct'

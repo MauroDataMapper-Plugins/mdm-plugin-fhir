@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class FhirTerminologyExporterProviderService extends TerminologyExporterProviderService {
 
+    public static final String CONTENT_TYPE = 'application/fhir+json'
+
     @Autowired
     JsonViewTemplateEngine templateEngine
 
@@ -39,8 +41,8 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
     }
 
     @Override
-    String getFileType() {
-        'text/json'
+    String getContentType() {
+        CONTENT_TYPE
     }
 
     @Override
@@ -59,8 +61,8 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
     }
 
     @Override
-    ByteArrayOutputStream exportTerminology(User currentUser, Terminology terminology) throws ApiException {
-        exportModel(terminology, fileType)
+    ByteArrayOutputStream exportTerminology(User currentUser, Terminology terminology, Map<String, Object> parameters) throws ApiException {
+        exportModel(terminology, contentType)
     }
 
     ByteArrayOutputStream exportModel(Terminology terminology, String format) {
@@ -80,7 +82,7 @@ class FhirTerminologyExporterProviderService extends TerminologyExporterProvider
     }
 
     @Override
-    ByteArrayOutputStream exportTerminologies(User currentUser, List<Terminology> terminology) throws ApiException {
+    ByteArrayOutputStream exportTerminologies(User currentUser, List<Terminology> terminology, Map<String, Object> parameters) throws ApiException {
         throw new ApiBadRequestException('TES01', "${getName()} cannot export multiple Terminologies")
     }
 

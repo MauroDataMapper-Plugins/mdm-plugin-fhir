@@ -31,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class FhirDataModelExporterProviderService extends DataModelExporterProviderService implements TemplateBasedExporter {
 
+    public static final String CONTENT_TYPE = 'application/fhir+json'
+
     @Autowired
     JsonViewTemplateEngine templateEngine
 
@@ -40,8 +42,8 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
     }
 
     @Override
-    String getFileType() {
-        'text/json'
+    String getContentType() {
+        CONTENT_TYPE
     }
 
     @Override
@@ -65,8 +67,8 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
     }
 
     @Override
-    ByteArrayOutputStream exportDataModel(User currentUser, DataModel dataModel) throws ApiException {
-        exportModel(dataModel, fileType)
+    ByteArrayOutputStream exportDataModel(User currentUser, DataModel dataModel, Map<String, Object> parameters) throws ApiException {
+        exportModel(dataModel, contentType)
     }
 
     ByteArrayOutputStream exportModel(DataModel dataModel, String format) {
@@ -86,7 +88,7 @@ class FhirDataModelExporterProviderService extends DataModelExporterProviderServ
     }
 
     @Override
-    ByteArrayOutputStream exportDataModels(User currentUser, List<DataModel> dataModel) throws ApiException {
+    ByteArrayOutputStream exportDataModels(User currentUser, List<DataModel> dataModel, Map<String, Object> parameters) throws ApiException {
         throw new ApiBadRequestException('JES01', "${getName()} cannot export multiple DataModels")
     }
 }

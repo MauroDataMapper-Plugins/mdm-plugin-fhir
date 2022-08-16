@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService {
 
+    public static final String CONTENT_TYPE = 'application/fhir+json'
+
     @Autowired
     JsonViewTemplateEngine templateEngine
 
@@ -39,8 +41,8 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
     }
 
     @Override
-    String getFileType() {
-        'text/json'
+    String getContentType() {
+        CONTENT_TYPE
     }
 
     @Override
@@ -59,8 +61,8 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
     }
 
     @Override
-    ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet) throws ApiException {
-        exportModel(codeSet, fileType)
+    ByteArrayOutputStream exportCodeSet(User currentUser, CodeSet codeSet, Map<String, Object> parameters) throws ApiException {
+        exportModel(codeSet, contentType)
     }
 
     ByteArrayOutputStream exportModel(CodeSet codeSet, String format) {
@@ -80,11 +82,11 @@ class FhirCodeSetExporterProviderService extends CodeSetExporterProviderService 
     }
 
     @Override
-    ByteArrayOutputStream exportCodeSets(User currentUser, List<CodeSet> codeSets) throws ApiException {
+    ByteArrayOutputStream exportCodeSets(User currentUser, List<CodeSet> codeSets, Map<String, Object> parameters) throws ApiException {
         throw new ApiBadRequestException('CSE01', "${getName()} cannot export multiple CodeSets")
     }
 
     static String getExportViewPath() {
         '/valueSet/export'
-    }   
+    }
 }

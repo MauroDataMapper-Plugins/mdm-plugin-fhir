@@ -137,7 +137,7 @@ class FhirCodeSetExporterProviderServiceSpec extends BaseIntegrationSpec impleme
         imported.label == entryId
 
         when: 'the imported CodeSet is exported'
-        ByteArrayOutputStream exportedJsonBytes = (fhirCodeSetExporterProviderService.exportCodeSet(admin, imported))
+        ByteArrayOutputStream exportedJsonBytes = (fhirCodeSetExporterProviderService.exportCodeSet(admin, imported, [:]))
         String exportedJson = new String(exportedJsonBytes.toByteArray())
 
         then: 'the exported Json is correct'
