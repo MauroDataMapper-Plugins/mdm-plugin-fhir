@@ -129,7 +129,8 @@ class FhirServerClient {
     }
 
     Map<String, Object> getCodeSystemEntry(String entryId) {
-        retrieveMapFromClient('/CodeSystem/{entryId}?_format=json', [entryId: entryId])
+//        retrieveMapFromClient('/CodeSystem/{entryId}?_format=json', [entryId: entryId])
+        retrieveMapFromClient('/CodeSystem/{entryId}', [entryId: entryId])
     }
 
     URI getHostUri() {
