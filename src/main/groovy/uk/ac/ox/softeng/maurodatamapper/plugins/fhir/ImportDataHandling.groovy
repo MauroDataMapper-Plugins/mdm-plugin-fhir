@@ -55,14 +55,14 @@ trait ImportDataHandling<M extends Model, P extends ModelImporterProviderService
     }
 
     M updateFhirImportedModelFromParameters(M importedModel, P params, boolean list) {
-        if (importedModel.metadata.find {it.key == 'status'}.value == 'active') {
+        if (importedModel.metadata.find {it.key == 'status'}.value != 'draft') {
             importedModel.finalised = true
 
             Metadata finalisedDateMetadata = importedModel.metadata.find {it.key == 'date'} ?:
                                              importedModel.metadata.find {it.key == 'meta.lastUpdated'}
 
             importedModel.dateFinalised = OffsetDateTime.parse(finalisedDateMetadata.value)
-            importedModel.modelVersion = Version.from(importedModel.metadata.find { it.key == 'version' }.value)
+            importedModel.modelVersionTag = importedModel.metadata.find { it.key == 'version' }.value
         }
         importedModel
     }

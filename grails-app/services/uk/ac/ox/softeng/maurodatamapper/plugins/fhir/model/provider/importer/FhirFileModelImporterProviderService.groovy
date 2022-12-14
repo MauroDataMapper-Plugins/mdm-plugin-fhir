@@ -21,6 +21,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.model.provider.importer
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiNotYetImplementedException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
+import uk.ac.ox.softeng.maurodatamapper.core.container.ClassifierService
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
@@ -48,6 +49,8 @@ import org.springframework.beans.factory.annotation.Autowired
 class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDomain, FhirFileModelImporterProviderServiceParameters>
     implements MetadataHandling, JsonImportMapping {
 
+    private static List<String> BUNDLE_NON_METADATA_KEYS = ['id', 'entry']
+
     AuthorityService authorityService
     TerminologyService terminologyService
     FhirTerminologyImporterProviderService fhirTerminologyImporterProviderService
@@ -55,6 +58,7 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
     VersionedFolderService versionedFolderService
     FolderService folderService
     CodeSetService codeSetService
+    ClassifierService classifierService
 
     @Override
     String getDisplayName() {
@@ -112,7 +116,8 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
             domain = importCodeSet(user, data, params)
         } else if (data.resourceType == 'Bundle' && data.type == 'collection') {
             domain = new VersionedFolder(label: data.id, createdBy: user.emailAddress, authority: authorityService.getDefaultAuthority())
-            domain.parentFolder = folderService.findDomainByLabel('Federation tests')
+//            domain.parentFolder = folderService.findDomainByLabel('Federation tests')
+            processMetadata(data, domain, namespace, BUNDLE_NON_METADATA_KEYS)
             versionedFolderService.validate(domain)
             versionedFolderService.save(domain)
 
@@ -141,6 +146,8 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
         }
 
         domain.createdBy = user.emailAddress
+        updateImportedDomainFromParameters(domain, params)
+        checkDomainImport(user, domain, params)
         domain
     }
 
@@ -160,6 +167,23 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
         CodeSet codeSet = fhirCodeSetImporterProviderService.extractCodeSetFromData(data)
 
         codeSet
+    }
+
+    MdmDomain checkDomainImport(User currentUser, MdmDomain importedDomain, FhirFileModelImporterProviderServiceParameters params) {
+        if (importedDomain instanceof Terminology) {
+            classifierService.checkClassifiers(currentUser, importedDomain)
+            terminologyService.checkAuthority(currentUser, importedDomain, params.useDefaultAuthority)
+            terminologyService.checkDocumentationVersion(importedDomain, params.importAsNewDocumentationVersion, currentUser)
+            terminologyService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+        } else if (importedDomain instanceof CodeSet) {
+            classifierService.checkClassifiers(currentUser, importedDomain)
+            codeSetService.checkAuthority(currentUser, importedDomain, params.useDefaultAuthority)
+            codeSetService.checkDocumentationVersion(importedDomain, params.importAsNewDocumentationVersion, currentUser)
+            codeSetService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+        } else if (importedDomain instanceof VersionedFolder) {
+            versionedFolderService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+        }
+        importedDomain
     }
 
     MdmDomain updateImportedDomainFromParameters(MdmDomain importedDomain, FhirFileModelImporterProviderServiceParameters params, boolean list = false) {
