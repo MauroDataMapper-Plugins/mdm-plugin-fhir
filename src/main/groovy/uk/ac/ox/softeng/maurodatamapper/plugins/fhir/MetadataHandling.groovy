@@ -18,14 +18,14 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.fhir
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 /**
  * @since 29/03/2021
  */
 trait MetadataHandling {
 
-    void processMetadata(Map<String, Object> dataset, CatalogueItem dataItem, String namespace, List<String> nonMetadataKeys) {
+    void processMetadata(Map<String, Object> dataset, MdmDomain dataItem, String namespace, List<String> nonMetadataKeys) {
         dataset.each {key, value ->
             if (key !in nonMetadataKeys) {
                 if (value instanceof String || value instanceof Integer || value instanceof Boolean) {
@@ -41,7 +41,7 @@ trait MetadataHandling {
         }
     }
 
-    void processNestedMetadata(String key, dataCollection, CatalogueItem dataItem, String namespace) {
+    void processNestedMetadata(String key, dataCollection, MdmDomain dataItem, String namespace) {
         try {
             if (dataCollection instanceof List) {
                 processListedMetadata(key, dataCollection, dataItem, namespace)
@@ -54,7 +54,7 @@ trait MetadataHandling {
         }
     }
 
-    void processListedMetadata(String key, List list, CatalogueItem dataItem, String namespace) {
+    void processListedMetadata(String key, List list, MdmDomain dataItem, String namespace) {
         if (list.size() > 1) {
             list.eachWithIndex {item, index ->
                 if (item instanceof String || item instanceof Integer || item instanceof Boolean) {
@@ -82,7 +82,7 @@ trait MetadataHandling {
         }
     }
 
-    void processMappedMetadata(String key, Map map, CatalogueItem dataItem, String namespace) {
+    void processMappedMetadata(String key, Map map, MdmDomain dataItem, String namespace) {
         map.each {mapKey, mapVal ->
             if (mapVal instanceof String || mapVal instanceof Integer || mapVal instanceof Boolean) {
                 dataItem.addToMetadata(

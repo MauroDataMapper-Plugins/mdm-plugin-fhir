@@ -70,6 +70,11 @@ class FhirDataModelImporterProviderService extends DataModelImporterProviderServ
     }
 
     @Override
+    Boolean canFederate() {
+        false
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }

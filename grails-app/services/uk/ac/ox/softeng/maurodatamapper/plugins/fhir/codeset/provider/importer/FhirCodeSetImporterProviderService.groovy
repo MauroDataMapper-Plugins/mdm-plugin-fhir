@@ -72,6 +72,11 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
     }
 
     @Override
+    Boolean canFederate() {
+        false
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }

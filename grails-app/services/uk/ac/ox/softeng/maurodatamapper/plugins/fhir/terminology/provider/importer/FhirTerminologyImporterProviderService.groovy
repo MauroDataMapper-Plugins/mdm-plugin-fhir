@@ -67,6 +67,11 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
     }
 
     @Override
+    Boolean canFederate() {
+        false
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }

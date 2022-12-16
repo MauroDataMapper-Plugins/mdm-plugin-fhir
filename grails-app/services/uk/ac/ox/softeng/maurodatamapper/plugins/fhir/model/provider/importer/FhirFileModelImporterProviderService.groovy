@@ -43,6 +43,8 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
+import uk.ac.ox.softeng.maurodatamapper.version.Version
+import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -118,8 +120,10 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
             domain = new VersionedFolder(label: data.id, createdBy: user.emailAddress, authority: authorityService.getDefaultAuthority())
 //            domain.parentFolder = folderService.findDomainByLabel('Federation tests')
             processMetadata(data, domain, namespace, BUNDLE_NON_METADATA_KEYS)
+            versionedFolderService.checkFacetsAfterImportingMultiFacetAware(domain)
             versionedFolderService.validate(domain)
             versionedFolderService.save(domain)
+            domain = versionedFolderService.get(domain.id)
 
             data.entry.findAll {it.resource?.resourceType == 'CodeSystem'}.each {Map<String, Object> codeSystemEntry ->
                 println 'CodeSystemEntry = ' + codeSystemEntry.toMapString()
@@ -148,7 +152,6 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
         domain.createdBy = user.emailAddress
         updateImportedDomainFromParameters(domain, params)
         checkDomainImport(user, domain, params)
-        domain
     }
 
     @Override
@@ -175,13 +178,21 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
             terminologyService.checkAuthority(currentUser, importedDomain, params.useDefaultAuthority)
             terminologyService.checkDocumentationVersion(importedDomain, params.importAsNewDocumentationVersion, currentUser)
             terminologyService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+            terminologyService.checkFinaliseModel(importedDomain, params.finalised, params.importAsNewBranchModelVersion)
         } else if (importedDomain instanceof CodeSet) {
             classifierService.checkClassifiers(currentUser, importedDomain)
             codeSetService.checkAuthority(currentUser, importedDomain, params.useDefaultAuthority)
             codeSetService.checkDocumentationVersion(importedDomain, params.importAsNewDocumentationVersion, currentUser)
             codeSetService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+            codeSetService.checkFinaliseModel(importedDomain, params.finalised, params.importAsNewBranchModelVersion)
         } else if (importedDomain instanceof VersionedFolder) {
-            versionedFolderService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+            versionedFolderService.checkFacetsAfterImportingMultiFacetAware(importedDomain)
+//            if (versionedFolderService.findLatestFinalisedModelByLabel(importedDomain.label)) versionedFolderService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser)
+            versionedFolderService.checkFinaliseModel(importedDomain, params.finalised, params.importAsNewBranchModelVersion)
+            VersionedFolder previous = VersionedFolder.byLabelAndFinalisedAndLatestModelVersion(importedDomain.label).get()
+            if (previous) {
+                importedDomain.modelVersion = Version.nextMajorVersion(previous.modelVersion)
+            }
         }
         importedDomain
     }
