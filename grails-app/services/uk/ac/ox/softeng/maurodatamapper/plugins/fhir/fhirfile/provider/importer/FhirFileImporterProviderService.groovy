@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2023 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.model.provider.importer
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.fhirfile.provider.importer
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiNotYetImplementedException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiUnauthorizedException
@@ -29,7 +29,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.ImporterProviderS
 import uk.ac.ox.softeng.maurodatamapper.core.traits.provider.importer.JsonImportMapping
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.MetadataHandling
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.codeset.provider.importer.FhirCodeSetImporterProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.model.provider.importer.parameter.FhirFileModelImporterProviderServiceParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.fhirfile.provider.importer.parameter.FhirFileImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.fhir.terminology.provider.importer.FhirTerminologyImporterProviderService
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -38,7 +38,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
-class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDomain, FhirFileModelImporterProviderServiceParameters>
+class FhirFileImporterProviderService extends ImporterProviderService<MdmDomain, FhirFileImporterProviderServiceParameters>
     implements MetadataHandling, JsonImportMapping {
 
     private static List<String> BUNDLE_NON_METADATA_KEYS = ['id', 'entry']
@@ -92,7 +92,7 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
     }
 
     @Override
-    MdmDomain importDomain(User user, FhirFileModelImporterProviderServiceParameters params) {
+    MdmDomain importDomain(User user, FhirFileImporterProviderServiceParameters params) {
         if (!user) throw new ApiUnauthorizedException('FHIRFILE01', 'User must be logged in to import model')
         log.debug('Import Model "{}"', params.modelName)
 
@@ -107,29 +107,26 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
             domain = importCodeSet(user, data, params)
         } else if (data.resourceType == 'Bundle' && data.type == 'collection') {
             // Import FHIR Bundle as Mauro VersionedFolder
-            domain = new VersionedFolder(label: data.id, createdBy: user.emailAddress, authority: params.providerSetAuthority ?: authorityService.getDefaultAuthority())
+            domain = new VersionedFolder(label: data.id, createdBy: user.emailAddress, authority: params.authority ?: authorityService.getDefaultAuthority())
             processMetadata(data, domain, namespace, BUNDLE_NON_METADATA_KEYS)
             versionedFolderService.checkFacetsAfterImportingMultiFacetAware(domain)
             versionedFolderService.validate(domain)
             versionedFolderService.save(domain)
 
             data.entry.findAll {it.resource?.resourceType == 'CodeSystem'}.each {Map<String, Object> codeSystemEntry ->
-                println 'CodeSystemEntry = ' + codeSystemEntry.toMapString()
                 Terminology terminology = importTerminology(user, codeSystemEntry.resource, params)
                 terminology.createdBy = user.emailAddress
-                terminology.authority = params.providerSetAuthority ?: authorityService.getDefaultAuthority()
+                terminology.authority = params.authority ?: authorityService.getDefaultAuthority()
                 terminology.folder = domain
-                terminologyService.checkImportedTerminologyAssociations(user, terminology)
                 terminologyService.validate(terminology)
                 terminologyService.save(terminology)
             }
 
 
             data.entry.findAll {it.resource?.resourceType == 'ValueSet'}.each {Map<String, Object> valueSetEntry ->
-                println 'ValueSetEntry = ' + valueSetEntry.toMapString()
                 CodeSet codeSet = importCodeSet(user, valueSetEntry.resource, params)
                 codeSet.createdBy = user.emailAddress
-                codeSet.authority = params.providerSetAuthority ?: authorityService.getDefaultAuthority()
+                codeSet.authority = params.authority ?: authorityService.getDefaultAuthority()
                 codeSet.folder = domain
                 codeSetService.validate(codeSet)
                 codeSetService.save(codeSet)
@@ -144,24 +141,24 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
     }
 
     @Override
-    List<MdmDomain> importDomains(User currentUser, FhirFileModelImporterProviderServiceParameters params) {
+    List<MdmDomain> importDomains(User currentUser, FhirFileImporterProviderServiceParameters params) {
         throw new ApiNotYetImplementedException('FHIRFILE03', 'Importing multiple models not yet implemented')
     }
 
-    Terminology importTerminology(User currentUser, Map<String, Object> data, FhirFileModelImporterProviderServiceParameters params) {
+    Terminology importTerminology(User currentUser, Map<String, Object> data, FhirFileImporterProviderServiceParameters params) {
         Terminology terminology = fhirTerminologyImporterProviderService.extractTerminologyFromData(data)
 
         terminologyService.checkImportedTerminologyAssociations(currentUser, terminology)
         terminology
     }
 
-    CodeSet importCodeSet(User currentUser, Map<String, Object> data, FhirFileModelImporterProviderServiceParameters params) {
+    CodeSet importCodeSet(User currentUser, Map<String, Object> data, FhirFileImporterProviderServiceParameters params) {
         CodeSet codeSet = fhirCodeSetImporterProviderService.extractCodeSetFromData(data)
 
         codeSet
     }
 
-    MdmDomain checkDomainImport(User currentUser, MdmDomain importedDomain, FhirFileModelImporterProviderServiceParameters params) {
+    MdmDomain checkDomainImport(User currentUser, MdmDomain importedDomain, FhirFileImporterProviderServiceParameters params) {
         if (importedDomain instanceof Terminology) {
             classifierService.checkClassifiers(currentUser, importedDomain)
             terminologyService.checkAuthority(currentUser, importedDomain, params.useDefaultAuthority)
@@ -177,15 +174,15 @@ class FhirFileModelImporterProviderService extends ImporterProviderService<MdmDo
         } else if (importedDomain instanceof VersionedFolder) {
             versionedFolderService.checkFacetsAfterImportingMultiFacetAware(importedDomain)
             versionedFolderService.checkAuthority(currentUser, importedDomain, params.useDefaultAuthority)
-            versionedFolderService.checkDocumentationVersion(importedDomain, params.importAsNewDocumentationVersion, currentUser, params.providerSetAuthority)
+            versionedFolderService.checkDocumentationVersion(importedDomain, params.importAsNewDocumentationVersion, currentUser, params.authority)
             versionedFolderService.checkBranchModelVersion(importedDomain, params.importAsNewBranchModelVersion, params.newBranchName, currentUser,
-                                                           params.providerSetAuthority)
-            versionedFolderService.checkFinaliseModel(importedDomain, params.finalised, params.importAsNewBranchModelVersion)
+                                                           params.authority)
+            versionedFolderService.checkFinaliseFolder(importedDomain, params.finalised, params.importAsNewBranchModelVersion)
         }
         importedDomain
     }
 
-    MdmDomain updateImportedDomainFromParameters(MdmDomain importedDomain, FhirFileModelImporterProviderServiceParameters params, boolean list = false) {
+    MdmDomain updateImportedDomainFromParameters(MdmDomain importedDomain, FhirFileImporterProviderServiceParameters params, boolean list = false) {
         // Dont allow finalisation state to be overridden to unfinalised
         if (params.finalised != null && !importedDomain.finalised) importedDomain.finalised = params.finalised
         if (!list && params.modelName) importedDomain.label = params.modelName

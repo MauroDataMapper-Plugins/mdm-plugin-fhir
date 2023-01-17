@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2023 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.model.provider.importer.parameter
+package uk.ac.ox.softeng.maurodatamapper.plugins.fhir.fhirfile.provider.importer.parameter
 
-import uk.ac.ox.softeng.maurodatamapper.core.authority.Authority
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.FileParameter
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.ModelImporterProviderServiceParameters
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportGroupConfig
 import uk.ac.ox.softeng.maurodatamapper.core.provider.importer.parameter.config.ImportParameterConfig
 
-class FhirFileModelImporterProviderServiceParameters extends ModelImporterProviderServiceParameters {
+class FhirFileImporterProviderServiceParameters extends ModelImporterProviderServiceParameters {
 
     @ImportParameterConfig(
         displayName = 'File',
