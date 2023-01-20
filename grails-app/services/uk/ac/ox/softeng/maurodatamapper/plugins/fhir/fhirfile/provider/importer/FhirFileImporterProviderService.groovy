@@ -153,7 +153,7 @@ class FhirFileImporterProviderService extends ImporterProviderService<MdmDomain,
     }
 
     CodeSet importCodeSet(User currentUser, Map<String, Object> data, FhirFileImporterProviderServiceParameters params) {
-        CodeSet codeSet = fhirCodeSetImporterProviderService.extractCodeSetFromData(data)
+        CodeSet codeSet = fhirCodeSetImporterProviderService.extractCodeSetFromData(data, currentUser)
 
         codeSet
     }

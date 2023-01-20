@@ -135,13 +135,13 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getValueSetEntry(codeSetName)
 
-        CodeSet codeSet = extractCodeSetFromData(data)
+        CodeSet codeSet = extractCodeSetFromData(data, currentUser)
         codeSet.authority = findOrCreateAuthority(data, fhirServerClient, currentUser)
 
         codeSet
     }
 
-    CodeSet extractCodeSetFromData(Map<String, Object> data) {
+    CodeSet extractCodeSetFromData(Map<String, Object> data, User currentUser) {
         CodeSet codeSet = new CodeSet(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
         processMetadata(data, codeSet, namespace, NON_METADATA_KEYS)
 

@@ -11,8 +11,7 @@ dependencies {
     runtimeOnly group: 'org.ehcache', name: 'ehcache'
     runtimeOnly group: 'org.postgresql', name: 'postgresql'
 
-//    testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmCoreVersion
-    testImplementation project(':mdm-testing-framework')
+    testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmCoreVersion
     testImplementation 'com.stehno.ersatz:ersatz:2.0.0'
 
     // Postgres database
