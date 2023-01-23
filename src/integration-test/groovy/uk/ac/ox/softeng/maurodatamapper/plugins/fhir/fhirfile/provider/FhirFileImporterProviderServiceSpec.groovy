@@ -84,6 +84,7 @@ class FhirFileImporterProviderServiceSpec extends BaseIntegrationSpec {
         Term term = terminology.findTermByCode('4')
 
         then:
+        terminology.folder == versionedFolder
         terminology.terms.size() == 4
         term.definition == 'A few'
 
@@ -92,6 +93,7 @@ class FhirFileImporterProviderServiceSpec extends BaseIntegrationSpec {
         term = terminology.findTermByCode('L')
 
         then:
+        terminology.folder == versionedFolder
         terminology.terms.size() == 5
         term.definition == 'Linux'
     }
