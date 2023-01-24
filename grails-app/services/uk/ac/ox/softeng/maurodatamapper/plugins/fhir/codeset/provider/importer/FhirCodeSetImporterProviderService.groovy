@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2023 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,11 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
     }
 
     @Override
+    Boolean canFederate() {
+        false
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }
@@ -130,9 +135,14 @@ class FhirCodeSetImporterProviderService extends CodeSetImporterProviderService<
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getValueSetEntry(codeSetName)
 
+        CodeSet codeSet = extractCodeSetFromData(data, currentUser)
+        codeSet.authority = findOrCreateAuthority(data, fhirServerClient, currentUser)
 
-        CodeSet codeSet = new CodeSet(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name],
-                                      authority: findOrCreateAuthority(data, fhirServerClient, currentUser))
+        codeSet
+    }
+
+    CodeSet extractCodeSetFromData(Map<String, Object> data, User currentUser) {
+        CodeSet codeSet = new CodeSet(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
         processMetadata(data, codeSet, namespace, NON_METADATA_KEYS)
 
         // TODO provide addtl param to import terminology if its not found

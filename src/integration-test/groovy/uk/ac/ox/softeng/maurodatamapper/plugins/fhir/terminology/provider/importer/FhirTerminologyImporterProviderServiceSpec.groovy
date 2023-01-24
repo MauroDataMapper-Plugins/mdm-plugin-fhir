@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2023 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
+import uk.ac.ox.softeng.maurodatamapper.version.Version
 
 import com.stehno.ersatz.ErsatzServer
 import grails.gorm.transactions.Rollback
@@ -97,6 +98,7 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         terminology
+        !terminology.finalised
         terminology.label == entryId
         terminology.aliases.first() == 'AdministrativeGender'
         terminology.metadata.size() == 20
@@ -134,6 +136,7 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         terminology
+        !terminology.finalised
         terminology.label == entryId
         terminology.aliases.first() == 'Care Connect Condition Category'
         terminology.metadata.size() == 8
@@ -171,6 +174,8 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         terminology
+        terminology.finalised == true
+        terminology.modelVersion == Version.from('1.0.0')
         terminology.label == entryId
         terminology.aliases.first() == 'Care Connect Ethnic Category'
         terminology.metadata.size() == 9
@@ -207,6 +212,8 @@ class FhirTerminologyImporterProviderServiceSpec extends BaseIntegrationSpec {
 
         then:
         terminology
+        terminology.finalised
+        terminology.modelVersion == Version.from('1.1.0')
         terminology.label == entryId
         terminology.aliases.first() == 'Care Connect Human Language'
         terminology.metadata.size() == 8

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2023 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,14 +55,26 @@ trait ImportDataHandling<M extends Model, P extends ModelImporterProviderService
     }
 
     M updateFhirImportedModelFromParameters(M importedModel, P params, boolean list) {
-        if (importedModel.metadata.find {it.key == 'status'}.value == 'active') {
-            importedModel.finalised = true
+        if (importedModel.metadata.find {it.key == 'status'}.value in ['retired', 'active']) {
+            // Finalise the Mauro model only if the FHIR version is a semantic version, which is recommended but not required
+            String metadataVersion = importedModel.metadata.find {it.key == 'version'}.value
+            Version finalisedVersion
+            try {
+                finalisedVersion = Version.from(metadataVersion)
+            } catch (Exception ignored) {
+            }
 
-            Metadata finalisedDateMetadata = importedModel.metadata.find {it.key == 'date'} ?:
-                                             importedModel.metadata.find {it.key == 'meta.lastUpdated'}
+            if (finalisedVersion) {
+                importedModel.finalised = true
 
-            importedModel.dateFinalised = OffsetDateTime.parse(finalisedDateMetadata.value)
-            importedModel.modelVersion = Version.from(importedModel.metadata.find { it.key == 'version' }.value)
+                Metadata finalisedDateMetadata = importedModel.metadata.find {it.key == 'date'} ?:
+                                                 importedModel.metadata.find {it.key == 'meta.lastUpdated'}
+
+                importedModel.dateFinalised = OffsetDateTime.parse(finalisedDateMetadata.value)
+                importedModel.modelVersion = finalisedVersion
+            } else {
+                importedModel.modelVersionTag = metadataVersion
+            }
         }
         importedModel
     }

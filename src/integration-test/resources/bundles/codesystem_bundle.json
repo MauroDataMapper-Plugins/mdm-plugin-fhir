@@ -1,0 +1,81 @@
+{
+  "resourceType": "Bundle",
+  "id": "Test-CodeSystem-Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "fullUrl": "https://dictionary.example.com/CodeSystem1",
+      "resource": {
+        "resourceType": "CodeSystem",
+        "id": "CodeSystem-1",
+        "url": "https://dictionary.example.com/CodeSystem1",
+        "version": "202301.2.0",
+        "name": "Test CodeSystem1",
+        "title": "Test CodeSystem1",
+        "status": "active",
+        "experimental": false,
+        "publisher": "Example.com Dictionary",
+        "description": "A test codeset",
+        "valueSet": "https://dictionary.example.com/CodeSystem1/vs",
+        "content": "complete",
+        "concept": [
+          {
+            "code": "1",
+            "display": "None"
+          },
+          {
+            "code": "2",
+            "display": "All"
+          },
+          {
+            "code": "3",
+            "display": "Some"
+          },
+          {
+            "code": "4",
+            "display": "A few"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://dictionary.example.com/CodeSystem2",
+      "resource": {
+        "resourceType": "CodeSystem",
+        "id": "CodeSystem-2",
+        "url": "https://dictionary.example.com/CodeSystem2",
+        "version": "202301.2.0",
+        "name": "Test CodeSystem2",
+        "title": "Test CodeSystem2",
+        "status": "active",
+        "experimental": false,
+        "publisher": "Example.com Dictionary",
+        "description": "Another test codeset",
+        "valueSet": "https://dictionary.example.com/CodeSystem2/vs",
+        "content": "complete",
+        "concept": [
+          {
+            "code": "W",
+            "display": "Windows"
+          },
+          {
+            "code": "L",
+            "display": "Linux"
+          },
+          {
+            "code": "M",
+            "display": "macOS"
+          },
+          {
+            "code": "U",
+            "display": "UNIX"
+          },
+          {
+            "code": "Z",
+            "display": "zOS"
+          }
+        ]
+      }
+    }
+  ]
+}
