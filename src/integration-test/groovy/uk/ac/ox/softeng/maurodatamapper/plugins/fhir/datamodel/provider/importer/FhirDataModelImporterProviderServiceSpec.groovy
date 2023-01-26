@@ -430,7 +430,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
                 responder {
                     contentType('application/json')
                     code(200)
-                    body(loadJsonString('StructureDefintion_text.json'))
+                    body(loadJsonString('StructureDefinition_text.json'))
                 }
             }
             GET("/StructureDefinition") {
@@ -440,7 +440,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
                 responder {
                     contentType('application/json')
                     code(200)
-                    body(loadJsonString('StructureDefintion_count.json'))
+                    body(loadJsonString('StructureDefinition_count.json'))
                 }
             }
             GET("/StructureDefinition/CareConnect-Condition-1") {
