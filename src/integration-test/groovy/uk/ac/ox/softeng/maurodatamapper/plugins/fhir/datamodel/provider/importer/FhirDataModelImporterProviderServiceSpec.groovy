@@ -430,7 +430,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
                 responder {
                     contentType('application/json')
                     code(200)
-                    body(loadJsonString('StructureDefintion_text.json'))
+                    body(loadJsonString('StructureDefinition_text.json'))
                 }
             }
             GET("/StructureDefinition") {
@@ -440,7 +440,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
                 responder {
                     contentType('application/json')
                     code(200)
-                    body(loadJsonString('StructureDefintion_count.json'))
+                    body(loadJsonString('StructureDefinition_count.json'))
                 }
             }
             GET("/StructureDefinition/CareConnect-Condition-1") {
@@ -502,6 +502,7 @@ class FhirDataModelImporterProviderServiceSpec extends BaseIntegrationSpec {
         assert dataModel.label == entryId
         dataModel.folder = folder
         dataModelService.validate(dataModel)
+        fhirDataModelImporterProviderService.updateImportedModelFromParameters(dataModel, parameters, false)
         if (dataModel.errors.hasErrors()) {
             GormUtils.outputDomainErrors(messageSource, dataModel)
             throw new ValidationException("Domain object is not valid. Has ${dataModel.errors.errorCount} errors", dataModel.errors)

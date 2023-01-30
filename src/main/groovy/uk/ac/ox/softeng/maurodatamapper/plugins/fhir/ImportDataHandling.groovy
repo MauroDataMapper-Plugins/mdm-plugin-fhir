@@ -70,7 +70,12 @@ trait ImportDataHandling<M extends Model, P extends ModelImporterProviderService
                 Metadata finalisedDateMetadata = importedModel.metadata.find {it.key == 'date'} ?:
                                                  importedModel.metadata.find {it.key == 'meta.lastUpdated'}
 
-                importedModel.dateFinalised = OffsetDateTime.parse(finalisedDateMetadata.value)
+                String finalisedDate = finalisedDateMetadata.value
+                if (finalisedDate.length() < 11) {
+                    finalisedDate = finalisedDate + "T00:00:00Z"
+                }
+
+                importedModel.dateFinalised = OffsetDateTime.parse(finalisedDate)
                 importedModel.modelVersion = finalisedVersion
             } else {
                 importedModel.modelVersionTag = metadataVersion
