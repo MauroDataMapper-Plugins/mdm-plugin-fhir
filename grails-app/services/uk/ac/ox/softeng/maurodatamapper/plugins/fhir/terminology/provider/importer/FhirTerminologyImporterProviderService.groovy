@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2023 University of Oxford and NHS England
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,11 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
     }
 
     @Override
+    Boolean canFederate() {
+        false
+    }
+
+    @Override
     Boolean allowsExtraMetadataKeys() {
         true
     }
@@ -125,8 +130,15 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
         // Load the map for that datamodel name
         Map<String, Object> data = fhirServerClient.getCodeSystemEntry(terminologyName)
 
-        Terminology terminology = new Terminology(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name],
-                                                  authority: findOrCreateAuthority(data, fhirServerClient, currentUser))
+        Terminology terminology = extractTerminologyFromData(data)
+        terminology.authority = findOrCreateAuthority(data, fhirServerClient, currentUser)
+
+        terminologyService.checkImportedTerminologyAssociations(currentUser, terminology)
+        terminology
+    }
+
+    Terminology extractTerminologyFromData(Map<String, Object> data) {
+        Terminology terminology = new Terminology(label: data.id, description: data.description, organisation: data.publisher, aliases: [data.name])
         processMetadata(data, terminology, namespace, TERMINOLOGY_NON_METADATA_KEYS)
 
         data.concept.each {Map concept ->
@@ -135,14 +147,14 @@ class FhirTerminologyImporterProviderService extends TerminologyImporterProvider
                     it.definition = concept.definition
                     it.description = concept.display
                 } else {
-                    it.definition = concept.display
+                    it.definition = concept.display ?: concept.code
                 }
             }
             processMetadata(concept, term, namespace, TERM_NON_METADATA_KEYS)
+            term.terminology = terminology
             terminology.addToTerms(term)
         }
 
-        terminologyService.checkImportedTerminologyAssociations(currentUser, terminology)
         terminology
     }
 }
